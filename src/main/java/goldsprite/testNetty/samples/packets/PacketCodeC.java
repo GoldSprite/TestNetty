@@ -1,5 +1,7 @@
 package goldsprite.testNetty.samples.packets;
 
+import goldsprite.testNetty.samples.packets.MyPackets.MessageRequestPacket;
+import goldsprite.testNetty.samples.packets.MyPackets.MessageResponsePacket;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 
@@ -21,6 +23,8 @@ public class PacketCodeC {
         packetTypeMap = new HashMap<>();
         packetTypeMap.put(LOGIN_REQUEST, LoginRequestPacket.class);
         packetTypeMap.put(LOGIN_RESPONSE, LoginResponsePacket.class);
+        packetTypeMap.put(MESSAGE_REQUEST, MessageRequestPacket.class);
+        packetTypeMap.put(MESSAGE_RESPONSE, MessageResponsePacket.class);
     }
 
     public ByteBuf encode(ByteBufAllocator bufAllocator, Packet packet) {

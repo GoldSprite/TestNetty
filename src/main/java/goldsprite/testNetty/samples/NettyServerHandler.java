@@ -2,6 +2,8 @@ package goldsprite.testNetty.samples;
 
 import goldsprite.testNetty.samples.packets.LoginRequestPacket;
 import goldsprite.testNetty.samples.packets.LoginResponsePacket;
+import goldsprite.testNetty.samples.packets.MyPackets.MessageRequestPacket;
+import goldsprite.testNetty.samples.packets.MyPackets.MessageResponsePacket;
 import goldsprite.testNetty.samples.packets.Packet;
 import goldsprite.testNetty.samples.packets.PacketCodeC;
 import io.netty.buffer.ByteBuf;
@@ -34,6 +36,16 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
             // 编码，结果发送给客户端
             ByteBuf responseByteBuf = PacketCodeC.INSTANCE.encode(ctx.alloc(), loginResponsePacket);
             ctx.channel().writeAndFlush(responseByteBuf);
+        }else if(packet instanceof MessageRequestPacket){
+            //处理
+            MessageRequestPacket pk = (MessageRequestPacket) packet;
+            System.out.println("接收: MessageRequestPacket: "+pk.getMessage());
+            //回包
+            MessageResponsePacket pk2 = new MessageResponsePacket();
+            pk2.setSuccess(true);
+            //编码发回
+            ByteBuf responseBuf = PacketCodeC.INSTANCE.encode(ctx.alloc(), pk2);
+            ctx.channel().writeAndFlush(responseBuf);
         }
     }
     private boolean valid(LoginRequestPacket loginRequestPacket) {
