@@ -1,5 +1,7 @@
 package goldsprite.testNetty.samples;
 
+import goldsprite.DateTools;
+import goldsprite.testNetty.TestNetty;
 import goldsprite.testNetty.samples.packets.LoginRequestPacket;
 import goldsprite.testNetty.samples.packets.LoginResponsePacket;
 import goldsprite.testNetty.samples.packets.MyPackets.MessageRequestPacket;
@@ -11,6 +13,7 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
+import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Random;
 import java.util.Scanner;
@@ -37,6 +40,10 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         ByteBuf buffer = PacketCodeC.INSTANCE.encode(ctx.alloc(), loginRequestPacket);
         // 写数据
         ctx.channel().writeAndFlush(buffer);
+
+
+        //循环发包测试
+        TestNetty.testLoopMes(ctx, 20);
     }
 
     @Override
@@ -48,13 +55,15 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf byteBuf = (ByteBuf) msg;
+        System.out.println(DateTools.currentDateTime() +"接收到数据包..."+byteBuf.toString(Charset.forName("utf-8")));
+
         Packet packet = PacketCodeC.INSTANCE.decode(byteBuf);
         //如果数据类型是登录，就进行登录判断
         //同理可以判断数据是否是普通消息，还是其他类型的数据
         if (packet instanceof LoginResponsePacket) {
             LoginResponsePacket loginResponsePacket = (LoginResponsePacket) packet;
             if (loginResponsePacket.isSuccess()) {
-                System.out.println(new Date() + ": 登录成功");
+                System.out.println(new Date().toString() + ": 登录成功");
                 Scanner scanner = new Scanner(System.in);
                 var str = scanner.nextLine();
                 System.out.println("你输入了: "+str);
@@ -73,33 +82,18 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        System.out.println("服务端出现异常: ");
-    }
-
-    private void testLoopMes(ChannelHandlerContext ctx, int repeat) {
-        var delay = 100;
-        if(repeat>0){
-            bootstrap.config().group().schedule(()->{
-                var pk = new MessageRequestPacket();
-                pk.setMessage("123456789");
-//                pk.setMessage("哈哈哈哈"+new Random().nextInt(1000));
-                var requestBuf = PacketCodeC.INSTANCE.encode(ctx.alloc(), pk);
-                ctx.channel().writeAndFlush(requestBuf);
-                testLoopMes(ctx, repeat-1);
-            }, delay, TimeUnit.MILLISECONDS);
-            System.out.println(delay+"s后发送消息.");
-        }else{
-            System.out.println("消息已全部发送.");
-        }
-    }
-
     private void sendMessage(ChannelHandlerContext ctx, String str) {
         var pk = new MessageRequestPacket();
         pk.setMessage(str);
         var requestBuf = PacketCodeC.INSTANCE.encode(ctx.alloc(), pk);
         ctx.channel().writeAndFlush(requestBuf);
+    }
+
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        System.out.println("服务端出现异常: "+cause);
+        ctx.close();
     }
 
 }

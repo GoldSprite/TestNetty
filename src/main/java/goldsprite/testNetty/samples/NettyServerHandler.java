@@ -1,5 +1,7 @@
 package goldsprite.testNetty.samples;
 
+import goldsprite.DateTools;
+import goldsprite.testNetty.TestNetty;
 import goldsprite.testNetty.samples.packets.LoginRequestPacket;
 import goldsprite.testNetty.samples.packets.LoginResponsePacket;
 import goldsprite.testNetty.samples.packets.MyPackets.MessageRequestPacket;
@@ -25,6 +27,10 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("[客户端"+ctx.channel().remoteAddress()+"]频道已激活.");
+
+
+        //循环发包测试
+        TestNetty.testLoopMes(ctx, 20);
     }
 
     @Override
@@ -35,7 +41,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         ByteBuf requestByteBuf = (ByteBuf) msg;
-        System.out.println("接收到数据包..."+requestByteBuf.toString(Charset.forName("utf-8")));
+        System.out.println(DateTools.currentDateTime() +"接收到数据包..."+requestByteBuf.toString(Charset.forName("utf-8")));
         // 解码
         Packet packet = null;
         try{
@@ -79,13 +85,15 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
-    @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        System.out.println("客户端发生异常.");
-    }
-
     private boolean valid(LoginRequestPacket loginRequestPacket) {
         //这里可以查询数据库，验证用户的账号密码是否正确
         return true;
+    }
+
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        System.out.println("客户端发生异常: "+cause);
+        ctx.close();
     }
 }
