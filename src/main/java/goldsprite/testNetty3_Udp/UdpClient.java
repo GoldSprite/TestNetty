@@ -30,9 +30,14 @@ class UdpClient {
     /**
      * 点对点
      */
-    public static InetSocketAddress remoteAddress = new InetSocketAddress("10.0.0.2", 60000);  //localhost, 8888
-    public static InetSocketAddress localAddress = new InetSocketAddress("10.0.0.2", 30000);  //localhost, 8888
-    public static InetSocketAddress localAddress2 = new InetSocketAddress("10.0.0.2", 30001);  //localhost, 8888
+    public static final String addr1 = "10.0.0.2";
+    public static final String addr1_w = "162.14.68.248";
+    public static final String addr2 = "192.168.1.105";
+    public static final String addr2_w = "112.195.244.151";
+    public static InetSocketAddress remoteAddress = new InetSocketAddress(addr1, 34001);  //localhost, 8888
+    public static InetSocketAddress remoteAddress2 = new InetSocketAddress(addr1_w, 34001);  //localhost, 8888
+    public static InetSocketAddress localAddress = new InetSocketAddress(addr2, 30000);  //localhost, 8888
+    public static InetSocketAddress localAddress2 = new InetSocketAddress(addr2, 30001);  //localhost, 8888
 
     /** 广播地址
      InetSocketAddress remoteAddress = new InetSocketAddress("255.255.255.255", 9000)
@@ -64,7 +69,7 @@ class UdpClient {
         var msg = "客户端消息xx"+
                 "一二三四五六七八九十"
                 ;
-        sendMsg(channel, remoteAddress, msg, 1250, 8);
+        sendMsg(channel, remoteAddress2, msg, 3750, 16);
     }
 
     public static void sendMsg(Channel channel, InetSocketAddress address, final String msgf, int tick, int delayMillis) {

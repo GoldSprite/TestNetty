@@ -58,7 +58,7 @@ class UdpClient2 {
         var msg = "客户端消息xx"+
                 "一二三四五六七八九十"
                 ;
-        sendMsg(channel, UdpClient.remoteAddress, msg, 1250, 8);
+        sendMsg(channel, UdpClient.remoteAddress2, msg, 3750, 16);
     }
 
     public static void sendMsg(Channel channel, InetSocketAddress address, final String msgf, int tick, int delayMillis) {

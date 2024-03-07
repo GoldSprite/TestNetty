@@ -62,8 +62,8 @@ public class Server {
             var msg = "服务端消息xx"+
                     "一二三四五六七八九十"
                     ;
-            UdpClient.sendMsg(ch, UdpClient.localAddress, msg, 1250, 8);
-            UdpClient.sendMsg(ch, UdpClient.localAddress2, msg, 1250, 8);
+//            UdpClient.sendMsg(ch, UdpClient.localAddress, msg, 3750, 16);
+//            UdpClient.sendMsg(ch, UdpClient.localAddress2, msg, 3750, 16);
 
 
             ch.closeFuture().await();
