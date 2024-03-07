@@ -28,14 +28,15 @@ public class NettyServer {
                 .option(ChannelOption.SO_BACKLOG, 1024 * 512)
                 .handler(new ChannelInitializer<NioServerSocketChannel>() {
                     protected void initChannel(NioServerSocketChannel ch) {
-                        System.out.println("服务端启动中");
+                        System.out.println("服务端主频道启动中");
                     }
                 })
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel ch) throws Exception {
+                        System.out.println("服务端工作频道启动中");
 //                        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 7, 4));  //指定网络协议编码过滤器
-                        ch.pipeline().addLast(new NettyServerHandler());
+                        ch.pipeline().addLast(new NettyServerHandler(bootstrap));
                     }
                 });
     }

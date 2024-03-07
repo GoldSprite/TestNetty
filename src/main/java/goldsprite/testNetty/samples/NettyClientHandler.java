@@ -25,9 +25,9 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        System.out.println("已连接上服务端.");
+        System.out.println("频道已激活.");
 
-        System.out.println(new Date() + ": 客户端开始登录");
+        System.out.println(new Date() + ": 开始登录");
         // 创建登录对象
         LoginRequestPacket loginRequestPacket = new LoginRequestPacket();
         loginRequestPacket.setUserId(new Random().nextInt(10000));
@@ -41,7 +41,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("服务端已离线.");
+        System.out.println("频道已结束.");
     }
 
     //接收服务端信息

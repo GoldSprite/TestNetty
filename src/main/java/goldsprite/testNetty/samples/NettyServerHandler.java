@@ -6,6 +6,7 @@ import goldsprite.testNetty.samples.packets.MyPackets.MessageRequestPacket;
 import goldsprite.testNetty.samples.packets.MyPackets.MessageResponsePacket;
 import goldsprite.testNetty.samples.packets.Packet;
 import goldsprite.testNetty.samples.packets.PacketCodeC;
+import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -15,15 +16,20 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class NettyServerHandler extends ChannelInboundHandlerAdapter {
+    private final ServerBootstrap bootstrap;
+
+    public NettyServerHandler(ServerBootstrap bootstrap) {
+        this.bootstrap = bootstrap;
+    }
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("客户端已上线.");
+        System.out.println("[客户端"+ctx.channel().remoteAddress()+"]频道已激活.");
     }
 
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("客户端已下线.");
+        System.out.println("[客户端"+ctx.channel().remoteAddress()+"]频道已下线.");
     }
 
     @Override

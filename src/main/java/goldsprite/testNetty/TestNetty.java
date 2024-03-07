@@ -1,6 +1,5 @@
 package goldsprite.testNetty;
 
-import com.wxshan.test.ListenSocket;
 import goldsprite.testNetty.samples.NettyServer;
 
 import java.io.BufferedReader;
