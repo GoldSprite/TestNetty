@@ -1,6 +1,7 @@
 package goldsprite.testNetty3_Udp;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
@@ -25,7 +26,6 @@ public class Server {
 
 
     void run(InetSocketAddress groupAddress) {
-
         EventLoopGroup group = new NioEventLoopGroup();
 
         try {
@@ -46,7 +46,7 @@ public class Server {
                         }
                     });
 
-            NioDatagramChannel ch = (NioDatagramChannel) b.bind(groupAddress).sync().channel();
+            NioDatagramChannel ch = (NioDatagramChannel) b.bind(UdpClient.remoteAddress).sync().channel();
 
 
             NetworkInterface ni = NetUtil.LOOPBACK_IF;
@@ -59,7 +59,11 @@ public class Server {
 
 
             //循环发消息
-            UdpClient.sendMsg(ch, UdpClient.localAddress, "服务端消息xx", 10, 1000);
+            var msg = "服务端消息xx"+
+                    "一二三四五六七八九十"
+                    ;
+            UdpClient.sendMsg(ch, UdpClient.localAddress, msg, 1250, 8);
+            UdpClient.sendMsg(ch, UdpClient.localAddress2, msg, 1250, 8);
 
 
             ch.closeFuture().await();

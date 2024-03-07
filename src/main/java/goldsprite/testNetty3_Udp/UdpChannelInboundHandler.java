@@ -20,7 +20,7 @@ class UdpChannelInboundHandler extends SimpleChannelInboundHandler<DatagramPacke
 
         var buf = msg.content();
         String strMsg = buf.toString(CharsetUtil.UTF_8);
-        System.out.println(DateTools.currentDateTime()+"recv: "+strMsg);
+        System.out.println(DateTools.currentDateTime()+"["+msg.sender().getHostString()+":"+msg.sender().getPort()+"] recv: "+strMsg);
 
 
         if(rep) {
