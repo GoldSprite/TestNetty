@@ -1,5 +1,6 @@
 package goldsprite.testNetty3_Udp;
 
+import goldsprite.DateTools;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
@@ -19,7 +20,7 @@ class UdpChannelInboundHandler extends SimpleChannelInboundHandler<DatagramPacke
 
         var buf = msg.content();
         String strMsg = buf.toString(CharsetUtil.UTF_8);
-        System.out.println("recv: $strMsg");
+        System.out.println(DateTools.currentDateTime()+"recv: "+strMsg);
 
 
         if(rep) {

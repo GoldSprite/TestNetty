@@ -1,5 +1,6 @@
 package goldsprite.testNetty3_Udp;
 
+import goldsprite.DateTools;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -13,6 +14,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.CharsetUtil;
 
 import java.net.InetSocketAddress;
+import java.util.Random;
 
 class UdpClient {
     Channel channel;
@@ -22,28 +24,14 @@ class UdpClient {
         UdpClient client = new UdpClient();
 
         client.startClient();
-
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < 5; i++) {
-                    var msg = "msg $i";
-                    System.out.println(  "send msg: $msg");
-                    client.sendMsg(msg);
-                    try{Thread.sleep(1000);}catch(Exception e){}
-                }
-
-                System.out.println( "send finish..");
-            }
-        }).start();
     }
 
 
     /**
      * 点对点
      */
-    InetSocketAddress remoteAddress = new InetSocketAddress("192.168.1.105", 60000);  //localhost, 8888
-    InetSocketAddress localAddress = new InetSocketAddress("192.168.1.105", 1000);  //localhost, 8888
+    public static InetSocketAddress remoteAddress = new InetSocketAddress("192.168.1.105", 60000);  //localhost, 8888
+    public static InetSocketAddress localAddress = new InetSocketAddress("192.168.1.105", 1000);  //localhost, 8888
 
     /** 广播地址
      InetSocketAddress remoteAddress = new InetSocketAddress("255.255.255.255", 9000)
@@ -70,20 +58,34 @@ class UdpClient {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        //循环发消息
+        sendMsg(channel, remoteAddress, "客户端消息xx", 10, 1000);
     }
 
-    void sendMsg(String msg) {
+    public static void sendMsg(Channel channel, InetSocketAddress address, final String msgf, int tick, int delayMillis) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                for (int i = 0; i < tick; i++) {
+                    var msg = msgf + " "+i;
+                    System.out.println(DateTools.currentDateTime()+ address+ " send msg: "+msg);
 
-        ByteBuf buf = new UnpooledByteBufAllocator(true).buffer();
-        buf.writeCharSequence(msg, CharsetUtil.UTF_8);
+                    ByteBuf buf = new UnpooledByteBufAllocator(true).buffer();
+                    buf.writeCharSequence(msg, CharsetUtil.UTF_8);
+                    var packet = new DatagramPacket(buf, address);
+                    try {
+                        channel.writeAndFlush(packet).sync();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
 
-        var packet = new DatagramPacket(buf, remoteAddress);
+                    try{Thread.sleep(delayMillis);}catch(Exception e){}
+                }
 
-        try {
-            channel.writeAndFlush(packet).sync();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+                System.out.println( "send finish..");
+            }
+        }).start();
     }
 
 }

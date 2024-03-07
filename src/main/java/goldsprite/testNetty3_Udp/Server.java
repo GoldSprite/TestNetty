@@ -57,8 +57,12 @@ public class Server {
 
             System.out.println( "udp server($groupAddress.hostName:$groupAddress.port) is running...");
 
-            ch.closeFuture().await();
 
+            //循环发消息
+            UdpClient.sendMsg(ch, UdpClient.localAddress, "服务端消息xx", 10, 1000);
+
+
+            ch.closeFuture().await();
         } catch (InterruptedException e) {
             e.printStackTrace();
         } catch (Exception e) {
