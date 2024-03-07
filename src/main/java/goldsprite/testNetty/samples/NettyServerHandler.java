@@ -39,7 +39,9 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
         // 解码
         Packet packet = null;
         try{
+            System.out.println("解析到数据包...");
             packet = PacketCodeC.INSTANCE.decode(requestByteBuf);
+            System.out.println("数据包解析完成: "+packet.getClass().getSimpleName());
         }catch(Exception e){
             System.out.println("Packet解包异常: 错误的未知格式数据.");
         }

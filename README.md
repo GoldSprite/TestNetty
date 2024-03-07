@@ -1,5 +1,7 @@
 # TestNetty
 
+## Unity端项目github地址: https://github.com/GoldSprite/NetcodeLearn_HumanEatCoin
+
 ### 2024.3.6.0
 初始化项目： 简单登录Netty通信， 使用自定义PacketCodeC
 
@@ -18,6 +20,12 @@
 调整了Log提示写明客户端ipport
 
 ### 2024.3.7.2
+尝试java服务端+C#客户端:
+- [x] 建立连接
+- [x] 保持连接: 踩了半天坑, 原来C#Netty无法wait只能手动阻塞(现在采用Console.ReadKey()来阻塞才不会退出)
+- [x] 已完成连接, 发送消息, 确认消息, 关闭连接流程.
+
+### 2024.3.7.3
 
 ### 待办
 增加登录逻辑
