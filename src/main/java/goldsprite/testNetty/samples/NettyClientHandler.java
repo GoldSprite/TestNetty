@@ -13,6 +13,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 
 import java.util.Date;
 import java.util.Random;
+import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
 public class NettyClientHandler extends ChannelInboundHandlerAdapter {
@@ -24,6 +25,8 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
+        System.out.println("已连接上服务端.");
+
         System.out.println(new Date() + ": 客户端开始登录");
         // 创建登录对象
         LoginRequestPacket loginRequestPacket = new LoginRequestPacket();
@@ -36,6 +39,11 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         ctx.channel().writeAndFlush(buffer);
     }
 
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        System.out.println("服务端已离线.");
+    }
+
     //接收服务端信息
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -46,10 +54,14 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         if (packet instanceof LoginResponsePacket) {
             LoginResponsePacket loginResponsePacket = (LoginResponsePacket) packet;
             if (loginResponsePacket.isSuccess()) {
-                System.out.println(new Date() + ": 客户端登录成功");
-                testLoopMes(ctx ,10);
+                System.out.println(new Date() + ": 登录成功");
+                Scanner scanner = new Scanner(System.in);
+                var str = scanner.nextLine();
+                System.out.println("你输入了: "+str);
+                sendMessage(ctx, str);
+//                testLoopMes(ctx ,300);
             } else {
-                System.out.println(new Date() + ": 客户端登录失败，原因：" + loginResponsePacket.getReason());
+                System.out.println(new Date() + ": 登录失败，原因：" + loginResponsePacket.getReason());
             }
         }else if(packet instanceof MessageResponsePacket){
             MessageResponsePacket pk = (MessageResponsePacket) packet;
@@ -61,19 +73,33 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         }
     }
 
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        System.out.println("服务端出现异常: ");
+    }
+
     private void testLoopMes(ChannelHandlerContext ctx, int repeat) {
-        var delay = 3;
+        var delay = 100;
         if(repeat>0){
             bootstrap.config().group().schedule(()->{
                 var pk = new MessageRequestPacket();
-                pk.setMessage("哈哈哈哈"+new Random().nextInt(1000));
+                pk.setMessage("123456789");
+//                pk.setMessage("哈哈哈哈"+new Random().nextInt(1000));
                 var requestBuf = PacketCodeC.INSTANCE.encode(ctx.alloc(), pk);
                 ctx.channel().writeAndFlush(requestBuf);
                 testLoopMes(ctx, repeat-1);
-            }, delay, TimeUnit.SECONDS);
+            }, delay, TimeUnit.MILLISECONDS);
             System.out.println(delay+"s后发送消息.");
         }else{
             System.out.println("消息已全部发送.");
         }
     }
+
+    private void sendMessage(ChannelHandlerContext ctx, String str) {
+        var pk = new MessageRequestPacket();
+        pk.setMessage(str);
+        var requestBuf = PacketCodeC.INSTANCE.encode(ctx.alloc(), pk);
+        ctx.channel().writeAndFlush(requestBuf);
+    }
+
 }

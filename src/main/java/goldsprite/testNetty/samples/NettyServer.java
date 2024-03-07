@@ -1,13 +1,12 @@
 package goldsprite.testNetty.samples;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.ChannelPipeline;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 
 import java.net.InetSocketAddress;
 
@@ -19,7 +18,7 @@ public class NettyServer {
 
     private Channel channel;
 
-    public NettyServer(){
+    public NettyServer() {
         bossGroup = new NioEventLoopGroup();
         workerGroup = new NioEventLoopGroup();
 
@@ -35,17 +34,24 @@ public class NettyServer {
                 .childHandler(new ChannelInitializer<NioSocketChannel>() {
                     @Override
                     protected void initChannel(NioSocketChannel ch) throws Exception {
+//                        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(Integer.MAX_VALUE, 7, 4));  //指定网络协议编码过滤器
                         ch.pipeline().addLast(new NettyServerHandler());
                     }
                 });
     }
 
-    public void start(InetSocketAddress address){
+    public void start(InetSocketAddress address) {
         try {
             System.out.println("Server start...");
-            bootstrap.bind(address).sync();
+            ChannelFuture cf = bootstrap.bind(address).sync();
+            cf.channel().closeFuture().sync();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+//            断开连接
+//            e.printStackTrace();
+            System.out.println("客户端强制断开连接.");
+        } finally {
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
         }
     }
 }
