@@ -15,4 +15,7 @@ public interface ICommand {
 
     byte QUERYROOMINFO_REQUEST= 7;
     byte QUERYROOMINFO_RESPONSE= 8;
+
+    byte HEARTBEAT_REQUEST = 9;
+    byte HEARTBEAT_RESPONSE = 10;
 }

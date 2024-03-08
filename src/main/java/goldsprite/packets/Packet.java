@@ -11,7 +11,7 @@ public abstract class Packet {
     @Getter
     protected byte version = 1;
     @Getter @Setter
-    private String OwnerUUID = "";
+    private int ownerGuid = -1;
 
 //    public Packet(){}
 //    public Packet(InetSocketAddress sender, InetSocketAddress recipient){

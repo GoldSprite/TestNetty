@@ -1,19 +1,21 @@
 package goldsprite.testNetty3_Udp;
 
-import goldsprite.packets.MyPackets.LoginRequestPacket;
-import goldsprite.packets.MyPackets.MoveRequestPacket;
-import goldsprite.packets.MyPackets.QueryRoomInfoPacket;
-import goldsprite.packets.MyPackets.QueryRoomInfoResponsePacket;
+import goldsprite.packets.MyPackets.*;
 import goldsprite.packets.Packet;
 import goldsprite.packets.PacketCodeC;
+import goldsprite.testNetty3_Udp.other.ClientInfoStatus;
+import goldsprite.testNetty3_Udp.other.PacketCallback;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import io.netty.util.Attribute;
+import io.netty.util.AttributeKey;
 
 import java.net.InetSocketAddress;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.UUID;
@@ -22,6 +24,8 @@ import static goldsprite.LogTools.NLog;
 
 public class UdpClient {
     public static UdpClient Instance;
+    public ClientInfoStatus server = new ClientInfoStatus();
+    public int ownerGuid = -1;
 
     Channel channel;
     InetSocketAddress ra2 = new InetSocketAddress("192.168.1.105", 8007);
@@ -62,7 +66,8 @@ public class UdpClient {
         System.out.println(helpMsg);
         while (true) {
             Scanner scan = new Scanner(System.in);
-            var str = scan.nextLine().replaceFirst("/", "");
+            var str = scan.nextLine();
+            str = str.replaceFirst("/", "");
             var cmd = str.split(" ");
             try {
                 DecodeCommand(cmd);
@@ -114,9 +119,9 @@ public class UdpClient {
                 queryRoomInfoAsync(new PacketCallback() {
                     @Override
                     public void callback(Packet pk) {
-                        var qryreppk = (QueryRoomInfoResponsePacket)pk;
+                        var qryreppk = (QueryRoomInfoResponsePacket) pk;
                         System.out.println("在线玩家数: " + qryreppk.getPlayerCount());
-                        System.out.println("在线玩家列表: " + String.join(", ", qryreppk.getPlayerList()));
+                        System.out.println("在线玩家列表: [" + String.join(", ", qryreppk.getPlayerList()) + "]");
                     }
                 });
                 break;
@@ -135,25 +140,32 @@ public class UdpClient {
         var pkHandler = (CustomPacketHandler) channel.pipeline().context("2").handler();
         try {
             pkHandler.addCallbackListener(callback);
-            channel.writeAndFlush(dpk).sync();
+            channel.writeAndFlush(dpk);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void login(String name, String pwd) {
+        var callback = new PacketCallback(){
+            public void run(Packet pk){
+                //初始化sever信息
+                server.loginTimeMillis = System.currentTimeMillis();
+                server.afkHearts = server.loginTimeMillis + Server.heartTicker;
+            }
+        };
+        var pkHandler = (CustomPacketHandler) channel.pipeline().context("2").handler();
+        pkHandler.addCallbackListener(callback);
         try {
-            var loginPk = new LoginRequestPacket(name, pwd);
+            var loginPk = new LoginRequestPacket(name, pwd, callback.ppid);
             var dpk = PacketCodeC.INSTANCE.encodeDpk(channel.alloc(), loginPk, ra2);
-
-            channel.writeAndFlush(dpk).sync();
+            channel.writeAndFlush(dpk);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void Move(float x, float y, float z) {
-
         try {
             var ra = new InetSocketAddress("192.168.1.105", 9007);
             var ra2 = new InetSocketAddress("192.168.1.105", 8007);
@@ -161,13 +173,13 @@ public class UdpClient {
             mpk.setPos(x, y, z);
             var dpk = PacketCodeC.INSTANCE.encodeDpk(channel.alloc(), mpk, ra2);
 
-            channel.writeAndFlush(dpk).sync();
+            channel.writeAndFlush(dpk);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void sendMsg(Channel channel, InetSocketAddress address, final String msgf, int tick, int delayMillis) {
+    /* public static void sendMsg(Channel channel, InetSocketAddress address, final String msgf, int tick, int delayMillis) {
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -199,18 +211,31 @@ public class UdpClient {
                 NLog(localAddress2, "send finish..");
             }
         }).start();
+    } */
+
+    public void startHeartBeatThread() {
+        new Thread(() -> {
+            while (true) {
+                //发心跳包
+                var ra2 = this.ra2;
+                var callback = new PacketCallback(){
+                    public void run(Packet pk){
+                        //服务器回应
+                        var hreppk = (HeartBeatResponsePacket)pk;
+                        server.afkHearts = hreppk.getHeartMillis() + Server.heartTicker;
+                    }
+                };
+                var hpk = new HeartBeatRequestPacket(System.currentTimeMillis(), callback.ppid);
+                var dpk = PacketCodeC.INSTANCE.encodeDpk(channel.alloc(), hpk, ra2);
+                channel.writeAndFlush(dpk);
+
+                try {
+                    Thread.sleep(900);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
-
-
-    public class PacketCallback{
-        public String ppid;
-
-        public PacketCallback(){
-            ppid = UUID.randomUUID().toString();
-        }
-        public void callback(Packet pk){}
-    }
-
-
 }
 

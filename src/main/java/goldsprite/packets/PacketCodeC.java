@@ -30,6 +30,8 @@ public class PacketCodeC {
         packetTypeMap.put(MOVE_RESPONSE, MoveResponsePacket.class);
         packetTypeMap.put(QUERYROOMINFO_REQUEST, QueryRoomInfoPacket.class);
         packetTypeMap.put(QUERYROOMINFO_RESPONSE, QueryRoomInfoResponsePacket.class);
+        packetTypeMap.put(HEARTBEAT_REQUEST, HeartBeatRequestPacket.class);
+        packetTypeMap.put(HEARTBEAT_RESPONSE, HeartBeatResponsePacket.class);
     }
 
     public ByteBuf encode(ByteBufAllocator bufAllocator, Packet packet) {

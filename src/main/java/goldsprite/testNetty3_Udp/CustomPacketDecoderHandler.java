@@ -25,6 +25,8 @@ public class CustomPacketDecoderHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         System.out.println(ctx.name() + ": CustomPacketDecoderHandler.channelRead");
+        var channel = ctx.channel();
+
         if(msg instanceof DatagramPacket){
             ctx.fireChannelRead((DatagramPacket)msg);
         }else{
