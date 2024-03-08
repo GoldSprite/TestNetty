@@ -21,10 +21,10 @@ public class UdpChannelInboundHandler extends ChannelInboundHandlerAdapter {
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+    public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
 
-        var buf = (ByteBuf)msg;
-//        var buf = msg.content();
+        var pk = (DatagramPacket)packet;
+        var buf = pk.content();
         String strMsg = buf.toString(CharsetUtil.UTF_8);
         NLog(UdpClient.localAddress2, "recv: "+strMsg);
 
@@ -33,9 +33,9 @@ public class UdpChannelInboundHandler extends ChannelInboundHandlerAdapter {
             ByteBuf buf1 = new UnpooledByteBufAllocator(true).buffer();
             buf1.writeCharSequence("ok", CharsetUtil.UTF_8);
 
-//            var packet = new DatagramPacket(buf1, msg.sender());
+            var pkRep = new DatagramPacket(buf1, pk.sender());
 
-            ctx.writeAndFlush(buf1).sync();
+            ctx.writeAndFlush(pkRep).sync();
         }
     }
 

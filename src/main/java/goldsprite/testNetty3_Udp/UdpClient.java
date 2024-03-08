@@ -86,12 +86,10 @@ public class UdpClient {
 
                     ByteBuf buf = new UnpooledByteBufAllocator(true).buffer();
                     buf.writeCharSequence(msg, CharsetUtil.UTF_8);
-//                    var packet = new DatagramPacket(buf, address);
                     try {
-                        var ra = channel.remoteAddress();
-                        channel.connect(remoteAddress2).sync();
-                        var ra2 = channel.remoteAddress();
-                        channel.writeAndFlush(buf).sync();
+                        var ra = new InetSocketAddress("192.168.1.105", 8007);
+                        var packet = new DatagramPacket(buf, ra);
+                        channel.writeAndFlush(packet).sync();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
