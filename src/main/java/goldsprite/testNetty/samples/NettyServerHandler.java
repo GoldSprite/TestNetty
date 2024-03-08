@@ -2,20 +2,18 @@ package goldsprite.testNetty.samples;
 
 import goldsprite.DateTools;
 import goldsprite.testNetty.TestNetty;
-import goldsprite.testNetty.samples.packets.LoginRequestPacket;
-import goldsprite.testNetty.samples.packets.LoginResponsePacket;
-import goldsprite.testNetty.samples.packets.MyPackets.MessageRequestPacket;
-import goldsprite.testNetty.samples.packets.MyPackets.MessageResponsePacket;
-import goldsprite.testNetty.samples.packets.Packet;
-import goldsprite.testNetty.samples.packets.PacketCodeC;
+import goldsprite.packets.MyPackets.LoginRequestPacket;
+import goldsprite.packets.MyPackets.LoginResponsePacket;
+import goldsprite.packets.MyPackets.MessageRequestPacket;
+import goldsprite.packets.MyPackets.MessageResponsePacket;
+import goldsprite.packets.Packet;
+import goldsprite.packets.PacketCodeC;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import io.netty.util.CharsetUtil;
 
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 
 public class NettyServerHandler extends ChannelInboundHandlerAdapter {
     private final ServerBootstrap bootstrap;
@@ -56,7 +54,6 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
             if (packet instanceof LoginRequestPacket) {
                 LoginRequestPacket loginRequestPacket = (LoginRequestPacket) packet;
                 LoginResponsePacket loginResponsePacket=new LoginResponsePacket();
-                loginResponsePacket.setVersion(packet.getVersion());
                 // 登录校验
                 if (valid(loginRequestPacket)) {
                     // 校验成功

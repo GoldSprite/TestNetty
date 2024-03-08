@@ -2,12 +2,12 @@ package goldsprite.testNetty.samples;
 
 import goldsprite.DateTools;
 import goldsprite.testNetty.TestNetty;
-import goldsprite.testNetty.samples.packets.LoginRequestPacket;
-import goldsprite.testNetty.samples.packets.LoginResponsePacket;
-import goldsprite.testNetty.samples.packets.MyPackets.MessageRequestPacket;
-import goldsprite.testNetty.samples.packets.MyPackets.MessageResponsePacket;
-import goldsprite.testNetty.samples.packets.Packet;
-import goldsprite.testNetty.samples.packets.PacketCodeC;
+import goldsprite.packets.MyPackets.LoginRequestPacket;
+import goldsprite.packets.MyPackets.LoginResponsePacket;
+import goldsprite.packets.MyPackets.MessageRequestPacket;
+import goldsprite.packets.MyPackets.MessageResponsePacket;
+import goldsprite.packets.Packet;
+import goldsprite.packets.PacketCodeC;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,7 +17,6 @@ import java.nio.charset.Charset;
 import java.util.Date;
 import java.util.Random;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 public class NettyClientHandler extends ChannelInboundHandlerAdapter {
     private final Bootstrap bootstrap;
@@ -33,7 +32,6 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
         System.out.println(new Date() + ": 开始登录");
         // 创建登录对象
         LoginRequestPacket loginRequestPacket = new LoginRequestPacket();
-        loginRequestPacket.setUserId(new Random().nextInt(10000));
         loginRequestPacket.setUserName("username");
         loginRequestPacket.setPassword("pwd");
         // 编码

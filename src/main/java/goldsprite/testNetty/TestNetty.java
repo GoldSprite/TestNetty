@@ -2,18 +2,12 @@ package goldsprite.testNetty;
 
 import goldsprite.DateTools;
 import goldsprite.testNetty.samples.NettyServer;
-import goldsprite.testNetty.samples.packets.MyPackets.MessageRequestPacket;
-import goldsprite.testNetty.samples.packets.PacketCodeC;
+import goldsprite.packets.MyPackets.MessageRequestPacket;
+import goldsprite.packets.PacketCodeC;
 import io.netty.channel.ChannelHandlerContext;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.charset.StandardCharsets;
-import java.util.concurrent.TimeUnit;
 
 public class TestNetty {
     public static final String SOCKET_IP = "192.168.1.105";

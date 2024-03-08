@@ -98,6 +98,15 @@ ctx.flush();  //发送
    - 入栈消息按InboundHandler自上到下read->readCompleted执行.
    - 出栈消息, 通过write与flush与writeAndFlush, 自下而上write->flush执行.
    - 调用即立即跳转执行, 无等待.
+~~~
+channel.pipeline().firstContext();  //可以获取第一个处理器
+channel.pipeline().context(name);  //可以获取指定名字处理器
+~~~
+
+### 2024.3.9.0-完成收发包代码框架
+做了个控制台输入指令来发不同包
+完成收发包: 登录, 移动, 查询
+完成可回调发包
 
 
 ### 待办

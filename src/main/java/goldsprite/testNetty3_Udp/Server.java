@@ -1,6 +1,7 @@
 package goldsprite.testNetty3_Udp;
 
 import io.netty.bootstrap.Bootstrap;
+import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -9,19 +10,29 @@ import io.netty.util.NetUtil;
 
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+import java.util.ArrayList;
+import java.util.List;
 
 import static goldsprite.LogTools.NLog;
 
 public class Server {
+    public static Server Instance;
+
+    public List<CustomPacketHandler> clients = new ArrayList<>();
+
+    public int clientCount() {
+        return clients.size();
+    }
+
 
     public static void main(String[] args) {
 
-        Server server = new Server();
+        Instance = new Server();
 
         InetSocketAddress address = new InetSocketAddress("192.168.1.105", 60000);  //239.8.8.1, 51888
 
 //        NLog(UdpClient.remoteAddress, "哈哈哈哈");
-        server.run(address);
+        Instance.run(address);
     }
 
 
@@ -45,9 +56,8 @@ public class Server {
                         @Override
                         protected void initChannel(NioDatagramChannel ch) throws Exception {
                             ch.pipeline().addLast("1", new CustomPacketDecoderHandler(true));
-//                            ch.pipeline().addLast("2", new UdpLogicHandler(true));
+                            ch.pipeline().addLast("2", new CustomPacketHandler(true));
                             ch.pipeline().addLast("3", new CustomPacketEncoderHandler(true));
-                            ch.pipeline().addLast("4", new CustomPacketEncoderHandler(true));
                         }
                     });
 
@@ -64,9 +74,8 @@ public class Server {
 
 
             //循环发消息
-            var msg = "服务端消息xx"+
-                    "一二三四五六七八九十"
-                    ;
+            var msg = "服务端消息xx" +
+                    "一二三四五六七八九十";
 //            UdpClient.sendMsg(ch, UdpClient.localAddress, msg, 3750, 16);
 //            UdpClient.sendMsg(ch, UdpClient.localAddress2, msg, 3750, 16);
 
@@ -79,6 +88,13 @@ public class Server {
         } finally {
             group.shutdownGracefully();
         }
+    }
+
+    public void addClient(CustomPacketHandler ctx) {
+        if (clients.contains(ctx)) {
+            clients.remove(ctx);
+        }
+        clients.add(ctx);
     }
 }
 
