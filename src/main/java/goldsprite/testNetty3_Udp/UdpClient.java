@@ -14,9 +14,12 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.util.CharsetUtil;
 
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.util.Random;
 
-class UdpClient {
+import static goldsprite.LogTools.NLog;
+
+public class UdpClient {
     Channel channel;
 
     public static void main(String[] args) {
@@ -30,14 +33,14 @@ class UdpClient {
     /**
      * 点对点
      */
-    public static final String addr1 = "10.0.0.2";
-    public static final String addr1_w = "162.14.68.248";
+    public static final String addr1 = "10.0.0.2";  //
+    public static final String addr1_w = "162.14.68.248";  //
     public static final String addr2 = "192.168.1.105";
     public static final String addr2_w = "112.195.244.151";
-    public static InetSocketAddress remoteAddress = new InetSocketAddress(addr1, 34001);  //localhost, 8888
-    public static InetSocketAddress remoteAddress2 = new InetSocketAddress(addr1_w, 34001);  //localhost, 8888
+    public static InetSocketAddress remoteAddress = new InetSocketAddress(addr2, 8001);  //localhost, 8888
+    public static InetSocketAddress remoteAddress2 = new InetSocketAddress(addr2_w, 34001);  //localhost, 8888
     public static InetSocketAddress localAddress = new InetSocketAddress(addr2, 30000);  //localhost, 8888
-    public static InetSocketAddress localAddress2 = new InetSocketAddress(addr2, 30001);  //localhost, 8888
+    public static InetSocketAddress localAddress2 = new InetSocketAddress(addr2_w, 30001);  //localhost, 8888
 
     /** 广播地址
      InetSocketAddress remoteAddress = new InetSocketAddress("255.255.255.255", 9000)
@@ -69,7 +72,7 @@ class UdpClient {
         var msg = "客户端消息xx"+
                 "一二三四五六七八九十"
                 ;
-        sendMsg(channel, remoteAddress2, msg, 3750, 16);
+        sendMsg(channel, remoteAddress2, msg, 1, 16);  //3750
     }
 
     public static void sendMsg(Channel channel, InetSocketAddress address, final String msgf, int tick, int delayMillis) {
@@ -77,14 +80,18 @@ class UdpClient {
             @Override
             public void run() {
                 for (int i = 0; i < tick; i++) {
-                    var msg = msgf + " "+i;
-                    System.out.println(DateTools.currentDateTime()+ address+ " send msg: "+msg);
+                    var msg = msgf;
+//                    var msg = msgf + " "+i;
+                    NLog(localAddress2, msg);
 
                     ByteBuf buf = new UnpooledByteBufAllocator(true).buffer();
                     buf.writeCharSequence(msg, CharsetUtil.UTF_8);
-                    var packet = new DatagramPacket(buf, address);
+//                    var packet = new DatagramPacket(buf, address);
                     try {
-                        channel.writeAndFlush(packet).sync();
+                        var ra = channel.remoteAddress();
+                        channel.connect(remoteAddress2).sync();
+                        var ra2 = channel.remoteAddress();
+                        channel.writeAndFlush(buf).sync();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -92,7 +99,7 @@ class UdpClient {
                     try{Thread.sleep(delayMillis);}catch(Exception e){}
                 }
 
-                System.out.println( "send finish..");
+                NLog(localAddress2, "send finish..");
             }
         }).start();
     }

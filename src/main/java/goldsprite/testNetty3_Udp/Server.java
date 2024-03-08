@@ -13,6 +13,8 @@ import io.netty.util.NetUtil;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 
+import static goldsprite.LogTools.NLog;
+
 public class Server {
 
     public static void main(String[] args) {
@@ -21,6 +23,7 @@ public class Server {
 
         InetSocketAddress address = new InetSocketAddress("192.168.1.105", 60000);  //239.8.8.1, 51888
 
+//        NLog(UdpClient.remoteAddress, "哈哈哈哈");
         server.run(address);
     }
 
@@ -51,11 +54,11 @@ public class Server {
 
             NetworkInterface ni = NetUtil.LOOPBACK_IF;
 
-            System.out.println("$ni.name : $ni.displayName");
+            NLog(UdpClient.remoteAddress2, "$ni.name : $ni.displayName");
 
 //            ch.joinGroup(groupAddress, ni).sync();
 
-            System.out.println( "udp server($groupAddress.hostName:$groupAddress.port) is running...");
+            NLog(UdpClient.remoteAddress2, "udp server($groupAddress.hostName:$groupAddress.port) is running...");
 
 
             //循环发消息

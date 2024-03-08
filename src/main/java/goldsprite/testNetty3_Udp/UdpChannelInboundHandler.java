@@ -4,33 +4,45 @@ import goldsprite.DateTools;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.util.CharsetUtil;
 
-class UdpChannelInboundHandler extends SimpleChannelInboundHandler<DatagramPacket> {
+import static goldsprite.LogTools.NLog;
 
-    boolean rep;
+public class UdpChannelInboundHandler extends ChannelInboundHandlerAdapter {
 
-    UdpChannelInboundHandler(boolean rep) {
-        this.rep = rep;
+    boolean isResponse;
+    boolean isServer;
+
+    UdpChannelInboundHandler(boolean isResponse) {
+        this.isServer = this.isResponse = isResponse;
     }
 
-    protected void channelRead0(ChannelHandlerContext ctx, DatagramPacket msg) throws Exception {
+    @Override
+    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
-        var buf = msg.content();
+        var buf = (ByteBuf)msg;
+//        var buf = msg.content();
         String strMsg = buf.toString(CharsetUtil.UTF_8);
-        System.out.println(DateTools.currentDateTime()+"["+msg.sender().getHostString()+":"+msg.sender().getPort()+"] recv: "+strMsg);
+        NLog(UdpClient.localAddress2, "recv: "+strMsg);
 
 
-        if(rep) {
+        if(isResponse) {
             ByteBuf buf1 = new UnpooledByteBufAllocator(true).buffer();
             buf1.writeCharSequence("ok", CharsetUtil.UTF_8);
 
-            var packet = new DatagramPacket(buf1, msg.sender());
+//            var packet = new DatagramPacket(buf1, msg.sender());
 
-            ctx.writeAndFlush(packet).sync();
+            ctx.writeAndFlush(buf1).sync();
         }
+    }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        NLog(UdpClient.remoteAddress2, "频道异常: "+cause);
+        //ctx.channel().close();
     }
 }
 

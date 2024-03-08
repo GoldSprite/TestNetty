@@ -13,7 +13,9 @@ import io.netty.util.CharsetUtil;
 
 import java.net.InetSocketAddress;
 
-class UdpClient2 {
+import static goldsprite.LogTools.NLog;
+
+public class UdpClient2 {
     Channel channel;
 
     public static void main(String[] args) {
@@ -67,7 +69,7 @@ class UdpClient2 {
             public void run() {
                 for (int i = 0; i < tick; i++) {
                     var msg = msgf + " "+i;
-                    System.out.println(DateTools.currentDateTime()+ address+ " send msg: "+msg);
+                    NLog(address, msg);
 
                     ByteBuf buf = new UnpooledByteBufAllocator(true).buffer();
                     buf.writeCharSequence(msg, CharsetUtil.UTF_8);
@@ -81,7 +83,7 @@ class UdpClient2 {
                     try{Thread.sleep(delayMillis);}catch(Exception e){}
                 }
 
-                System.out.println( "send finish..");
+                NLog(address, "send finish..");
             }
         }).start();
     }

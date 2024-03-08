@@ -30,7 +30,7 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
 
 
         //循环发包测试
-        TestNetty.testLoopMes(ctx, 20);
+        TestNetty.testLoopMes(ctx, 10);
     }
 
     @Override
@@ -80,7 +80,12 @@ public class NettyServerHandler extends ChannelInboundHandlerAdapter {
                 pk2.setSuccess(true);
                 //编码发回
                 ByteBuf responseBuf = PacketCodeC.INSTANCE.encode(ctx.alloc(), pk2);
-                ctx.channel().writeAndFlush(responseBuf);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ctx.channel().writeAndFlush(responseBuf);
+                    }
+                }).start();
             }
         }
     }

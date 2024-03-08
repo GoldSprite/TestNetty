@@ -43,7 +43,7 @@ public class NettyClientHandler extends ChannelInboundHandlerAdapter {
 
 
         //循环发包测试
-        TestNetty.testLoopMes(ctx, 20);
+        TestNetty.testLoopMes(ctx, 1);
     }
 
     @Override

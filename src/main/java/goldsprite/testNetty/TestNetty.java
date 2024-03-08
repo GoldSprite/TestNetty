@@ -12,6 +12,7 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 public class TestNetty {
@@ -35,14 +36,15 @@ public class TestNetty {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                var delay = 1000;
+                var delay = 100;
                 try {
                     var pk = new MessageRequestPacket();
+                    var msg = "123456789";
                     for (int i=repeat; i > 0; i--) {
-                        pk.setMessage("123456789");
+                        pk.setMessage(msg);
 //                pk.setMessage("哈哈哈哈"+new Random().nextInt(1000));
                         var requestBuf = PacketCodeC.INSTANCE.encode(ctx.alloc(), pk);
-                        ctx.channel().writeAndFlush(requestBuf);
+                        ctx.channel().writeAndFlush(requestBuf).sync();
 
                         System.out.println(DateTools.currentDateTime() + (delay / 1000f) + "s后发送消息.");
                         Thread.sleep(delay);
