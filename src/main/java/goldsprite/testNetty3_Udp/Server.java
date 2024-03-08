@@ -1,13 +1,9 @@
 package goldsprite.testNetty3_Udp;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFactory;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.DatagramChannel;
-import io.netty.channel.socket.InternetProtocolFamily;
 import io.netty.channel.socket.nio.NioDatagramChannel;
 import io.netty.util.NetUtil;
 
@@ -48,7 +44,10 @@ public class Server {
                     .handler(new ChannelInitializer<NioDatagramChannel>() {
                         @Override
                         protected void initChannel(NioDatagramChannel ch) throws Exception {
-                            ch.pipeline().addLast(new UdpChannelInboundHandler(true));
+                            ch.pipeline().addLast("1", new CustomPacketDecoderHandler(true));
+//                            ch.pipeline().addLast("2", new UdpLogicHandler(true));
+                            ch.pipeline().addLast("3", new CustomPacketEncoderHandler(true));
+                            ch.pipeline().addLast("4", new CustomPacketEncoderHandler(true));
                         }
                     });
 

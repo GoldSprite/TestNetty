@@ -1,20 +1,15 @@
 package goldsprite.testNetty3_Udp;
 
-import goldsprite.DateTools;
+import goldsprite.testNetty.samples.packets.LoginRequestPacket;
+import goldsprite.testNetty.samples.packets.PacketCodeC;
 import io.netty.bootstrap.Bootstrap;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.DatagramPacket;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import io.netty.handler.logging.LogLevel;
-import io.netty.handler.logging.LoggingHandler;
-import io.netty.util.CharsetUtil;
 
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.Random;
 
 import static goldsprite.LogTools.NLog;
@@ -46,8 +41,9 @@ public class UdpClient {
      InetSocketAddress remoteAddress = new InetSocketAddress("255.255.255.255", 9000)
      */
 
-    /** 组播地址
-     InetSocketAddress remoteAddress = new InetSocketAddress("239.8.8.1", 9000)
+    /**
+     * 组播地址
+     * InetSocketAddress remoteAddress = new InetSocketAddress("239.8.8.1", 9000)
      */
 
     void startClient() {
@@ -59,19 +55,18 @@ public class UdpClient {
                 .channel(NioDatagramChannel.class)
                 .handler(new ChannelInitializer() {
                     protected void initChannel(Channel ch) throws Exception {
-                        ch.pipeline().addLast("recv", new UdpChannelInboundHandler(false));
+                        ch.pipeline().addLast(new UdpLogicHandler(false));
                     }
                 });
         try {
-            channel = (NioDatagramChannel) b.bind(localAddress).sync().channel();
+            channel = (NioDatagramChannel) b.bind(new InetSocketAddress("192.168.1.105", 9007)).sync().channel();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         //循环发消息
-        var msg = "客户端消息xx"+
-                "一二三四五六七八九十"
-                ;
+        var msg = "客户端消息xx" +
+                "一二三四五六七八九十";
         sendMsg(channel, remoteAddress2, msg, 1, 16);  //3750
     }
 
@@ -84,17 +79,25 @@ public class UdpClient {
 //                    var msg = msgf + " "+i;
                     NLog(localAddress2, msg);
 
-                    ByteBuf buf = new UnpooledByteBufAllocator(true).buffer();
-                    buf.writeCharSequence(msg, CharsetUtil.UTF_8);
                     try {
+                        var loginPk = new LoginRequestPacket();
+                        loginPk.setUserId(0);
+                        loginPk.setUserName(new Random().nextInt(10000) + "");
+                        loginPk.setPassword("Admin");
+
+                        var byteBuf = PacketCodeC.INSTANCE.encode(channel.alloc(), loginPk);
                         var ra = new InetSocketAddress("192.168.1.105", 8007);
-                        var packet = new DatagramPacket(buf, ra);
+                        var packet = new DatagramPacket(byteBuf, ra);
+
                         channel.writeAndFlush(packet).sync();
-                    } catch (InterruptedException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
 
-                    try{Thread.sleep(delayMillis);}catch(Exception e){}
+                    try {
+                        Thread.sleep(delayMillis);
+                    } catch (Exception e) {
+                    }
                 }
 
                 NLog(localAddress2, "send finish..");

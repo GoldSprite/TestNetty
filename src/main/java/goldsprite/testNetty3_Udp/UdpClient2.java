@@ -1,6 +1,5 @@
 package goldsprite.testNetty3_Udp;
 
-import goldsprite.DateTools;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.UnpooledByteBufAllocator;
@@ -47,7 +46,7 @@ public class UdpClient2 {
                 .channel(NioDatagramChannel.class)
                 .handler(new ChannelInitializer() {
                     protected void initChannel(Channel ch) throws Exception {
-                        ch.pipeline().addLast("recv", new UdpChannelInboundHandler(false));
+                        ch.pipeline().addLast("recv", new UdpLogicHandler(false));
                     }
                 });
         try {

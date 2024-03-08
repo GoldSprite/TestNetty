@@ -11,4 +11,14 @@ public class LoginResponsePacket extends Packet {
     public byte getCommand() {
         return ICommand.LOGIN_RESPONSE;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("LoginRequestPacket");
+        sb.append('{');
+        sb.append("success='").append(success).append('\'');
+        sb.append(", reason=").append(reason);
+        sb.append('}');
+        return sb.toString();
+    }
 }

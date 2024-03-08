@@ -1,6 +1,7 @@
 # TestNetty
 
-## Unity端项目github地址: https://github.com/GoldSprite/NetcodeLearn_HumanEatCoin
+## Unity端项目github地址: 
+https://github.com/GoldSprite/NetcodeLearn_HumanEatCoin  
 
 ### 2024.3.6.0
 初始化项目： 简单登录Netty通信， 使用自定义PacketCodeC
@@ -83,9 +84,27 @@ udp连接简单完成:
          2. 使用通用handler处理器过筛
          3. handler内部强转将obj数据进行转换, 手动过筛.
 
+### 2024.3.8.1-试验handler出栈入栈流程  
+处理器方法: 
+~~~    
+ctx.fireChannelRead(data);  //拆解
+ctx.fireChannelReadComplete();  //声明结束当前拆解
+ctx.write(data);  //包裹
+ctx.flush();  //发送
+~~~
+ - 事件传递: fire..方法用于跳转下一处理器的对应方法, 不调用则事件结束在当前处理器不会继续传递.
+ - 传递顺序: 
+   - 根据pipeline.addLast顺序, 
+   - 入栈消息按InboundHandler自上到下read->readCompleted执行.
+   - 出栈消息, 通过write与flush与writeAndFlush, 自下而上write->flush执行.
+   - 调用即立即跳转执行, 无等待.
+
 
 ### 待办
-制作自定义编解码器:
+加上自定义编解码器:
+- 新增预处理器, 尝试在预处理器将Object包解析为DatagramPacket, 然后再解析为自定义Packet, 来筛选并打印日志:
+    - 解包通过: [类型]
+    - 解包失败: 未知类型: [源数据]
 - 通过规定协议编解码: bytes与对象互转
    - 定义协议格式: 魔数4->版本号1->序列化算法1->指令1->数据长度4->数据N
 增加登录逻辑
