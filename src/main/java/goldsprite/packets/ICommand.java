@@ -18,4 +18,11 @@ public interface ICommand {
 
     byte HEARTBEAT_REQUEST = 9;
     byte HEARTBEAT_RESPONSE = 10;
+
+    byte CALLBACK_REQUEST = 11;
+    byte CALLBACK_RESPONSE = 12;
+
+    String SEND_REQUEST = "client_request";
+    String RETURN_SUCCESS = "return_success";
+    String RETURN_DEFEAT = "return_defeat";
 }

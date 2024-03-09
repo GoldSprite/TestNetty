@@ -10,9 +10,10 @@ import java.net.InetSocketAddress;
 
 @Data
 public class CustomPacketDecoderHandler extends ChannelInboundHandlerAdapter {
-    private final boolean isServer;
+    private boolean isServer;
     private InetSocketAddress sender;
 
+    public CustomPacketDecoderHandler(){}
     public CustomPacketDecoderHandler(boolean isServer) {
         this.isServer = isServer;
     }

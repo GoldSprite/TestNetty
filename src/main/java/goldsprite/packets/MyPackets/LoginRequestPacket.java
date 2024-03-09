@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class LoginRequestPacket extends Packet {
     protected String userName;
     protected String password;
-    protected String ppid;
 
     @Override
     public byte getCommand() {

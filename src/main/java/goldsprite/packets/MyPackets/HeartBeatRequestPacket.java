@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class HeartBeatRequestPacket extends Packet {
     private long heartMillis;
-    private String ppid;
+
     @Override
     public byte getCommand() {
         return ICommand.HEARTBEAT_REQUEST;

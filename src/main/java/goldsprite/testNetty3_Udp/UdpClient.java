@@ -1,10 +1,12 @@
 package goldsprite.testNetty3_Udp;
 
+import goldsprite.packets.ICommand;
 import goldsprite.packets.MyPackets.*;
 import goldsprite.packets.Packet;
 import goldsprite.packets.PacketCodeC;
 import goldsprite.testNetty3_Udp.other.ClientInfoStatus;
 import goldsprite.testNetty3_Udp.other.PacketCallback;
+import goldsprite.testNetty3_Udp.other.PacketCallback2;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -86,9 +88,9 @@ public class UdpClient {
                     .channel(NioDatagramChannel.class)
                     .handler(new ChannelInitializer() {
                         protected void initChannel(Channel ch) throws Exception {
-                            ch.pipeline().addLast("1", new CustomPacketDecoderHandler(true));
-                            ch.pipeline().addLast("2", new CustomPacketHandler(true));
-                            ch.pipeline().addLast("3", new CustomPacketEncoderHandler(true));
+                            ch.pipeline().addLast("1", new CustomPacketDecoderHandler());
+                            ch.pipeline().addLast("2", new CustomPacketHandler());
+                            ch.pipeline().addLast("3", new CustomPacketEncoderHandler());
                         }
                     });
             channel = (NioDatagramChannel) b.bind(new InetSocketAddress("192.168.1.105", 9007)).sync().channel();
@@ -113,7 +115,21 @@ public class UdpClient {
                 System.out.println(helpManual);
                 break;
             case "login":
-                login(cmd[1], cmd[2]);
+                var name = cmd[1];
+                var pwd = cmd[2];
+                var pk = new LoginRequestPacket(name, pwd);
+                System.out.println("发登录包..");
+                sendPacket(pk, (p)->{
+                    var str = "登陆包响应: ";
+                    if(ICommand.RETURN_SUCCESS.equals(p.getCode())){
+                        str += "登录成功.";
+
+                    }else {
+                        str += "登录失败: "+p.getReason();
+                    }
+                    System.out.println(str);
+                });
+//                login(cmd[1], cmd[2]);
                 break;
             case "list":
                 queryRoomInfoAsync(new PacketCallback() {
@@ -135,100 +151,62 @@ public class UdpClient {
     }
 
     private void queryRoomInfoAsync(PacketCallback callback) {
-        var qrypk = new QueryRoomInfoPacket(callback.ppid);
-        var dpk = PacketCodeC.INSTANCE.encodeDpk(channel.alloc(), qrypk, ra2);
-        var pkHandler = (CustomPacketHandler) channel.pipeline().context("2").handler();
-        try {
-            pkHandler.addCallbackListener(callback);
-            channel.writeAndFlush(dpk);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        var ppid = UUID.randomUUID().toString();
+//        var qrypk = new QueryRoomInfoPacket(ppid);
+//        var pkHandler = (CustomPacketHandler) channel.pipeline().context("2").handler();
+//        try {
+//            pkHandler.addCallbackListener(callback);
+//            channel.writeAndFlush(dpk);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
     }
 
     private void login(String name, String pwd) {
-        var callback = new PacketCallback(){
-            public void run(Packet pk){
-                //初始化sever信息
-                server.loginTimeMillis = System.currentTimeMillis();
-                server.afkHearts = server.loginTimeMillis + Server.heartTicker;
-            }
-        };
-        var pkHandler = (CustomPacketHandler) channel.pipeline().context("2").handler();
-        pkHandler.addCallbackListener(callback);
-        try {
-            var loginPk = new LoginRequestPacket(name, pwd, callback.ppid);
-            var dpk = PacketCodeC.INSTANCE.encodeDpk(channel.alloc(), loginPk, ra2);
-            channel.writeAndFlush(dpk);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+//        var callback = new PacketCallback() {
+//            public void run(Packet pk) {
+//                //初始化sever信息
+//                server.loginTimeMillis = System.currentTimeMillis();
+//                server.afkHearts = server.loginTimeMillis + Server.heartTicker;
+//            }
+//        };
+//        var pkHandler = (CustomPacketHandler) channel.pipeline().context("2").handler();
+//        pkHandler.addCallbackListener(callback);
+//        var loginPk = new LoginRequestPacket(name, pwd, callback.ppid);
+//        sendPacket(loginPk);
     }
 
     private void Move(float x, float y, float z) {
         try {
-            var ra = new InetSocketAddress("192.168.1.105", 9007);
-            var ra2 = new InetSocketAddress("192.168.1.105", 8007);
             var mpk = new MoveRequestPacket();
             mpk.setPos(x, y, z);
             var dpk = PacketCodeC.INSTANCE.encodeDpk(channel.alloc(), mpk, ra2);
-
             channel.writeAndFlush(dpk);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    /* public static void sendMsg(Channel channel, InetSocketAddress address, final String msgf, int tick, int delayMillis) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                for (int i = 0; i < tick; i++) {
-                    var msg = msgf;
-//                    var msg = msgf + " "+i;
-                    NLog(localAddress2, "登录");
-
-                    try {
-                        var ra = new InetSocketAddress("192.168.1.105", 9007);
-                        var ra2 = new InetSocketAddress("192.168.1.105", 8007);
-                        var loginPk = new LoginRequestPacket(
-                                new Random().nextInt(10000) + "",
-                                "Admin"
-                        );
-                        var dpk = PacketCodeC.INSTANCE.encodeDpk(channel.alloc(), loginPk, ra2);
-
-                        channel.writeAndFlush(dpk).sync();
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    try {
-                        Thread.sleep(delayMillis);
-                    } catch (Exception e) {
-                    }
-                }
-
-                NLog(localAddress2, "send finish..");
-            }
-        }).start();
-    } */
+    public void sendPacket(Packet pk) {
+        channel.writeAndFlush(pk);
+    }
+    public <T extends Packet> void sendPacket(T pk, PacketCallback2<T> callback) {
+        var guid = UUID.randomUUID().toString();
+        var handler = (CustomPacketHandler) channel.pipeline().context("2").handler();
+        handler.addCallbackListener(guid, callback);
+        pk.setPpid(guid);
+        sendPacket(pk);
+    }
 
     public void startHeartBeatThread() {
         new Thread(() -> {
             while (true) {
                 //发心跳包
-                var ra2 = this.ra2;
-                var callback = new PacketCallback(){
-                    public void run(Packet pk){
-                        //服务器回应
-                        var hreppk = (HeartBeatResponsePacket)pk;
-                        server.afkHearts = hreppk.getHeartMillis() + Server.heartTicker;
-                    }
-                };
-                var hpk = new HeartBeatRequestPacket(System.currentTimeMillis(), callback.ppid);
-                var dpk = PacketCodeC.INSTANCE.encodeDpk(channel.alloc(), hpk, ra2);
-                channel.writeAndFlush(dpk);
-
+                var hpk = new HeartBeatRequestPacket(System.currentTimeMillis());
+                sendPacket(hpk, (hreppk)->{
+                    //服务器回应
+                    server.afkHearts = hreppk.getHeartMillis() + Server.heartTicker;
+                });
                 try {
                     Thread.sleep(900);
                 } catch (InterruptedException e) {
