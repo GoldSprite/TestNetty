@@ -65,7 +65,7 @@ public class Client {
     void startClient() {
         bind();
 
-        LogTools.NLog(helpMsg);
+        LogTools.NLogInfo(helpMsg);
         while (true) {
             Scanner scan = new Scanner(System.in);
             var str = scan.nextLine();
@@ -114,20 +114,20 @@ public class Client {
                         + "\n广播: /broadcast message..."
 //                        + "\n自杀: /kill"
                         ;
-                LogTools.NLog(helpManual);
+                LogTools.NLogInfo(helpManual);
                 break;
             }
             case "msg": {
                 var msg = String.join(" ", cmd);
                 msg = msg.replaceFirst("msg ", "");
-                LogTools.NLog("你发了: "+msg);
+                LogTools.NLogInfo("你发了: "+msg);
                 cmd_SendMsg(msg);
                 break;
             }
             case "broadcast": {
                 var msg = String.join(" ", cmd);
-                msg = msg.replaceFirst("msg ", "");
-                LogTools.NLog("你广播了: "+msg);
+                msg = msg.replaceFirst("broadcast ", "");
+                LogTools.NLogInfo("你广播了: "+msg);
                 cmd_SendBroadcast(msg);
                 break;
             }
@@ -142,7 +142,7 @@ public class Client {
                 break;
             }
             default:
-                LogTools.NLog(helpMsg);
+                LogTools.NLogInfo(helpMsg);
         }
     }
 
@@ -151,7 +151,7 @@ public class Client {
         sendPacket(pk, LoginResponsePacket.class, (rep) -> {
             if (IStatus.isSuccessStatus(rep)){
                 setOwnerGuid(rep.getOwnerGuid());
-                LogTools.NLog("登录成功.");
+                LogTools.NLogInfo("登录成功.");
             }
         });
     }
@@ -160,7 +160,7 @@ public class Client {
         var pk = new MessageRequestPacket(getOwnerGuid(), msg);
         sendPacket(pk, MessageResponsePacket.class, (rep) -> {
             if(IStatus.isSuccessStatus(rep))
-                LogTools.NLog("信息发送成功.");
+                LogTools.NLogInfo("信息发送成功.");
         });
     }
 
@@ -168,7 +168,7 @@ public class Client {
         var pk = new BroadcastRequestPacket(getOwnerGuid(), msg);
         sendPacket(pk, BroadcastResponsePacket.class, (rep) -> {
             if(IStatus.isSuccessStatus(rep)){
-                LogTools.NLog("广播发送成功.");
+                LogTools.NLogInfo("广播发送成功.");
             }
         });
     }

@@ -221,7 +221,17 @@ channel.pipeline().context(name);  //可以获取指定名字处理器
   - 连带更新别忘了传入返回码 ``new BroadcastResponsePacket(guid, IStatus.RETURN_SUCCESS, msg);``
   - 给玩家展示log``"收到广播消息: "+pk.getMessage()``
 
-### 2024.3.11.6
+### 2024.3.11.6-明确日志等级
+- 增加日志等级 ``public static int LogLevels;``
+- 增加日志等级接口 ``interface ILogLevel {``
+- 增加多个等级 ``final int LOG_MSG = 1;``
+- 增加多种日志输出类型方法 ``static void NLogInfo(Object msg) {..``
+- 替换所有NLog到NLogInfo ``replaceAll->NLogInfo``
+- 将loglevels改为字典表筛选 ``put(ILogLevel.ERROR, true);``
+- 条件为包含且开启则显示否则过滤该消息 ``if (!logLevels.containsKey(logLevel) || !logLevels.get(logLevel)) return;``
+- terminal指令忘了msg改成broadcast ``msg.replaceFirst("broadcast ", "");``
+
+### 2024.3.11.7
 
 
 ### 待办

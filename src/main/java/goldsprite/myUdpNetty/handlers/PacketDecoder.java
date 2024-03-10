@@ -1,7 +1,5 @@
 package goldsprite.myUdpNetty.handlers;
 
-import goldsprite.myUdpNetty.codec.PacketCodeC;
-import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
 import goldsprite.myUdpNetty.tools.LogTools;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -43,7 +41,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        LogTools.NLog("处理器异常: ");
+        LogTools.NLogErr("处理器异常: ");
         cause.printStackTrace();
     }
 }

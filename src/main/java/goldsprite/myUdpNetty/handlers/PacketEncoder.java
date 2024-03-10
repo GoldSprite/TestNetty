@@ -50,14 +50,14 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
         InetSocketAddress networkAddress = Server.networkAddress;
         if(isServer){
             if(!Server.Instance.isOnline(pk.getOwnerGuid())){
-                LogTools.NLog(info+"该玩家不在线上.");
+                LogTools.NLogInfo(info+"该玩家不在线上.");
                 return null;
             }
             ClientInfoStatus client = Server.Instance.clients.get(pk.getOwnerGuid());
             networkAddress = client.address;
         }
         if(networkAddress == null){
-            LogTools.NLog(info+"发送地址为空.");
+            LogTools.NLogInfo(info+"发送地址为空.");
             return null;
         }
         DatagramPacket dpk = PacketCodeC.INSTANCE.encodeDpk(ctx.alloc(), pk, networkAddress);
@@ -65,7 +65,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     }
 
     public void exceptionCaught(Exception e) throws Exception {
-        LogTools.NLog("处理器异常: ");
+        LogTools.NLogErr("处理器异常: ");
         e.printStackTrace();
     }
 

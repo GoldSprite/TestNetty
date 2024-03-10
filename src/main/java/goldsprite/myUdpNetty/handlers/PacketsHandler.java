@@ -46,7 +46,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
         var sender = dpk.sender();
         var packet = goldsprite.myUdpNetty.codec.PacketCodeC.INSTANCE.decode(dpk.content());
 
-        LogTools.NLog("收到包类型: " + packet.getClass().getSimpleName());
+        LogTools.NLogDebug("收到包类型: " + packet.getClass().getSimpleName());
 //        if(strangerIntercept)
 //            if(isServer){
 //                var intercept = strangerInterceptor(packet);
@@ -102,7 +102,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
     }
 
     private void handleBroadcastResponsePacket(BroadcastResponsePacket pk) {
-        LogTools.NLog("收到广播消息: "+pk.getMessage());
+        LogTools.NLogInfo("收到广播消息: "+pk.getMessage());
     }
 
     private void handleBroadcastRequestPacket(BroadcastRequestPacket pk) {
@@ -140,7 +140,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
     private int loginAuthentication(LoginRequestPacket pk) {
         var statusId = IStatus.RETURN_SUCCESS;
         if (Server.Instance.isOnline(pk.getOwnerGuid())) {
-            LogTools.NLog(IStatus.getStatusMsg(pk, IStatus.RETURN_DEFEAT_LOGIN_REPEAT));
+            LogTools.NLogInfo(IStatus.getStatusMsg(pk, IStatus.RETURN_DEFEAT_LOGIN_REPEAT));
             return IStatus.RETURN_DEFEAT_LOGIN_REPEAT;
         }
         return statusId;
@@ -156,7 +156,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        LogTools.NLog("处理器异常: ");
+        LogTools.NLogErr("处理器异常: ");
         cause.printStackTrace();
     }
 
@@ -176,7 +176,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
         if (!callbacks.containsKey(ppid)) callbacks.put(ppid, new ArrayList<>());
         var pkCallbacks = callbacks.get(ppid);
         pkCallbacks.add((pk) -> {
-            LogTools.NLog(IStatus.getStatusMsg(pk));
+            LogTools.NLogDebug(IStatus.getStatusMsg(pk));  //响应信息
             callback.callback((T) pk);
         });
     }

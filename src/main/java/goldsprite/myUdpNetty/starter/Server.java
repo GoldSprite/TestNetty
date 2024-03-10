@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 //import lombok.var;
 
-import static goldsprite.myUdpNetty.tools.LogTools.NLog;
+import static goldsprite.myUdpNetty.tools.LogTools.NLogInfo;
 
 public class Server {
     public static Server Instance;
@@ -68,8 +68,8 @@ public class Server {
                     });
             channel = (NioDatagramChannel) b.bind(localAddress).sync().channel();
 
-            NLog("$ni.name : $ni.displayName");
-            NLog("udp server($groupAddress.hostName:$groupAddress.port) is running...");
+            NLogInfo("$ni.name : $ni.displayName");
+            NLogInfo("udp server($groupAddress.hostName:$groupAddress.port) is running...");
 
             if(enableHeartBeats)
                 startHeartBeatThread();
@@ -92,7 +92,7 @@ public class Server {
                     var clientInfo = p.getValue();
                     //移除离线客户端
                     if (System.currentTimeMillis() > clientInfo.afkHearts) {
-                        LogTools.NLog("客户端[" + p.getKey() + "-" + clientInfo.name + "-" + clientInfo.address + "]已离线.");
+                        LogTools.NLogInfo("客户端[" + p.getKey() + "-" + clientInfo.name + "-" + clientInfo.address + "]已离线.");
                         return true;
                     }
                     return false;

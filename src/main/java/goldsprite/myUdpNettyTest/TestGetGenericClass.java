@@ -5,7 +5,7 @@ package goldsprite.myUdpNettyTest;
 import goldsprite.myUdpNetty.tools.LogTools;
 
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+
 /**
  * 测试获取泛型方法T实际类型: 结果失败, 只能获取类的泛型类型, 方法不可以, 匿名子类没试
  */
@@ -35,8 +35,8 @@ public class TestGetGenericClass {
     public <T extends A> void hello(B<T> k){
         var kk = new B<T>(){};
         var clazz = ((ParameterizedType) kk.getClass().getGenericSuperclass()).getActualTypeArguments();
-        LogTools.NLog(clazz);
-        LogTools.NLog(clazz[0]);
+        LogTools.NLogInfo(clazz);
+        LogTools.NLogInfo(clazz[0]);
     }
     public class A{}
     public class C extends A{}
