@@ -15,7 +15,7 @@ public class LogTools {
 //    }
 
     public static void NLog(Object msg){
-        LogTools.NLog(
+        System.out.println(
                 DateTools.currentDateTime()+
                         msg.toString()
         );
