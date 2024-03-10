@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class QueryRoomInfoResponsePacket extends Packet {
     private boolean success;
     private String reason;
-    private String ppid;
     private int playerCount;
     private int maxPlayerCount;
     private String[] playerList;

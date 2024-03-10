@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class LoginResponsePacket extends Packet {
     private boolean success;
     private String reason;
-    private String ppid;
 
     @Override
     public byte getCommand() {

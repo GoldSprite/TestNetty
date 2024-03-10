@@ -1,12 +1,10 @@
 package goldsprite.myUdpNetty.starter;
 
-import goldsprite.myUdpNetty.codec.packets.HeartBeatRequestPacket;
-import goldsprite.myUdpNetty.codec.packets.MoveResponsePacket;
+import goldsprite.myUdpNetty.codec.packets.*;
 import goldsprite.myUdpNetty.handlers.PacketDecoder;
 import goldsprite.myUdpNetty.handlers.PacketEncoder;
 import goldsprite.myUdpNetty.handlers.PacketsHandler;
 import goldsprite.myUdpNetty.codec.codecInterfaces.ICommand;
-import goldsprite.myUdpNetty.codec.packets.MoveRequestPacket;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
 import goldsprite.myUdpNetty.other.PacketCallback;
 import goldsprite.myUdpNetty.other.ClientInfoStatus;
@@ -19,11 +17,8 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 
 import java.net.InetSocketAddress;
 import java.util.Scanner;
-import java.util.UUID;
 
 import lombok.var;
-
-import static goldsprite.myUdpNetty.tools.LogTools.NLog;
 
 public class UdpClient {
     public static UdpClient Instance;
@@ -106,7 +101,7 @@ public class UdpClient {
     private void DecodeCommand(String[] cmd) throws Exception {
         var cmdHead = cmd[0];
         switch (cmdHead) {
-            case "help":
+            case "help":{
                 var helpManual = "commands: "
                         + "\n登录: /login name password"
                         + "\n在线玩家列表: /list"
@@ -115,12 +110,13 @@ public class UdpClient {
                         ;
                 System.out.println(helpManual);
                 break;
-            case "login":
+            }
+            case "login":{
                 var name = cmd[1];
                 var pwd = cmd[2];
-                var pk = new goldsprite.myUdpNetty.codec.packets.LoginRequestPacket(name, pwd);
+                var pk = new LoginRequestPacket(name, pwd);
                 System.out.println("发登录包..");
-                sendPacket(pk, (p) -> {
+                sendPacket(pk, LoginResponsePacket.class, (p) -> {
                     var str = "登陆包响应: ";
                     if (ICommand.RETURN_SUCCESS.equals(p.getCode())) {
                         str += "登录成功.";
@@ -132,35 +128,26 @@ public class UdpClient {
                 });
 //                login(cmd[1], cmd[2]);
                 break;
-            case "list":
-                queryRoomInfoAsync(new PacketCallback() {
-                    @Override
-                    public void callback(Packet pk) {
-                        var qryreppk = (goldsprite.myUdpNetty.codec.packets.QueryRoomInfoResponsePacket) pk;
-                        System.out.println("在线玩家数: " + qryreppk.getPlayerCount());
-                        System.out.println("在线玩家列表: [" + String.join(", ", qryreppk.getPlayerList()) + "]");
-                    }
+            }
+            case "list":{
+                queryRoomInfoAsync(pk->{
+                    var qryreppk = (goldsprite.myUdpNetty.codec.packets.QueryRoomInfoResponsePacket) pk;
+                    System.out.println("在线玩家数: " + qryreppk.getPlayerCount());
+                    System.out.println("在线玩家列表: [" + String.join(", ", qryreppk.getPlayerList()) + "]");
                 });
                 break;
-            case "move":
+            }
+            case "move": {
                 Move(Float.parseFloat(cmd[1]), Float.parseFloat(cmd[2]), Float.parseFloat(cmd[3]));
                 break;
-
-            default:
-                System.out.println(helpMsg);
+            }
+            default: System.out.println(helpMsg);
         }
     }
 
-    private void queryRoomInfoAsync(PacketCallback callback) {
-//        var ppid = UUID.randomUUID().toString();
-//        var qrypk = new QueryRoomInfoPacket(ppid);
-//        var pkHandler = (CustomPacketHandler) channel.pipeline().context("2").handler();
-//        try {
-//            pkHandler.addCallbackListener(callback);
-//            channel.writeAndFlush(dpk);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
+    private void queryRoomInfoAsync(PacketCallback2<QueryRoomInfoResponsePacket> callback) {
+        var qrypk = new QueryRoomInfoRequestPacket();
+        sendPacket(qrypk, QueryRoomInfoResponsePacket.class, callback);
     }
 
     private void login(String name, String pwd) {
@@ -178,25 +165,21 @@ public class UdpClient {
     }
 
     private void Move(float x, float y, float z) {
-        try {
-            var mpk = new MoveRequestPacket();
-            mpk.setPos(x, y, z);
-            boolean[] reply = {false};
-            new Thread(() -> {
-                try {
-                    sendPacket(mpk, (MoveResponsePacket pk) -> {
-                        reply[0] = true;
-                    });
-                    Thread.sleep(500);
-                    if(!reply[0]){
-                        System.out.println("服务器无回复.");
-                    }
-                } catch (Exception e) {
+        var mpk = new MoveRequestPacket();
+        mpk.setPos(x, y, z);
+        boolean[] reply = {false};
+        new Thread(() -> {
+            try {
+                sendPacket(mpk, MoveResponsePacket.class, pk -> {
+                    reply[0] = true;
+                });
+                Thread.sleep(1000);
+                if (!reply[0]) {
+                    System.out.println("服务器无回复.");
                 }
-            }).start();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+            } catch (Exception e) {
+            }
+        }).start();
     }
 
     public void sendPacket(Packet pk) {
@@ -204,11 +187,16 @@ public class UdpClient {
         channel.writeAndFlush(pk);
     }
 
-    public <T extends Packet> void sendPacket(Packet pk, PacketCallback2<T> callback) {
-        var ppid = UUID.randomUUID().toString();
+    public <T extends Packet> void sendPacket(Packet pk, Class<T> ppid, PacketCallback2<T> callback) {
+//        Class<T> ppid = (Class<T>)((ParameterizedType)callback.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+//        var clazz = callback.getClass();
+//        Type k = clazz.getGenericInterfaces()[0];
+//        Type k2 = ((ParameterizedType) k).getActualTypeArguments()[0];
+//        Class<T> ppid = (Class<T>) k2;
+//        var ppid = pk.getClass();
         var handler = (PacketsHandler) channel.pipeline().context("2").handler();
         handler.addCallbackListener(ppid, callback);
-        pk.setPpid(ppid);
+//        pk.setPpid(ppid);
         sendPacket(pk);
     }
 
@@ -219,7 +207,7 @@ public class UdpClient {
                     //发心跳包
                     var hpk = new goldsprite.myUdpNetty.codec.packets.HeartBeatRequestPacket(System.currentTimeMillis());
                     heartReply = false;
-                    sendPacket(hpk, (HeartBeatRequestPacket hreppk) -> {
+                    sendPacket(hpk, HeartBeatRequestPacket.class, hreppk -> {
                         //服务器回应
                         heartReply = true;
                         server.afkHearts = hreppk.getHeartMillis() + UdpServer.heartTicker;

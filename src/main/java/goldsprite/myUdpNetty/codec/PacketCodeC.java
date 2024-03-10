@@ -3,6 +3,7 @@ package goldsprite.myUdpNetty.codec;
 import goldsprite.myUdpNetty.codec.packets.MoveRequestPacket;
 import goldsprite.myUdpNetty.codec.codecInterfaces.ISerializer;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
+import goldsprite.myUdpNetty.codec.packets.QueryRoomInfoRequestPacket;
 import goldsprite.myUdpNetty.codec.serializers.JSONSerializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -32,7 +33,7 @@ public class PacketCodeC {
         packetTypeMap.put(MESSAGE_RESPONSE, goldsprite.myUdpNetty.codec.packets.MessageResponsePacket.class);
         packetTypeMap.put(MOVE_REQUEST, MoveRequestPacket.class);
         packetTypeMap.put(MOVE_RESPONSE, goldsprite.myUdpNetty.codec.packets.MoveResponsePacket.class);
-        packetTypeMap.put(QUERYROOMINFO_REQUEST, goldsprite.myUdpNetty.codec.packets.QueryRoomInfoPacket.class);
+        packetTypeMap.put(QUERYROOMINFO_REQUEST, QueryRoomInfoRequestPacket.class);
         packetTypeMap.put(QUERYROOMINFO_RESPONSE, goldsprite.myUdpNetty.codec.packets.QueryRoomInfoResponsePacket.class);
         packetTypeMap.put(HEARTBEAT_REQUEST, goldsprite.myUdpNetty.codec.packets.HeartBeatRequestPacket.class);
     }

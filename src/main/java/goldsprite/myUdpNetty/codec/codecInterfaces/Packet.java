@@ -10,8 +10,6 @@ public abstract class Packet {
     @Getter @Setter
     private int ownerGuid = -1;
     @Getter @Setter
-    private String ppid = "";
-    @Getter @Setter
     private String code = ICommand.SEND_REQUEST;
     @Getter @Setter
     protected String reason = "";

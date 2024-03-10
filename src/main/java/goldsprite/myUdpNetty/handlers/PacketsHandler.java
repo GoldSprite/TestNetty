@@ -1,8 +1,9 @@
 package goldsprite.myUdpNetty.handlers;
 
+import com.sun.security.ntlm.Server;
+import goldsprite.myUdpNetty.codec.packets.*;
 import goldsprite.myUdpNetty.other.PacketCallback2;
 import goldsprite.myUdpNetty.codec.codecInterfaces.ICommand;
-import goldsprite.myUdpNetty.codec.packets.MoveRequestPacket;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
 import goldsprite.myUdpNetty.codec.PacketCodeC;
 import goldsprite.myUdpNetty.starter.UdpClient;
@@ -20,7 +21,7 @@ import static goldsprite.myUdpNetty.starter.UdpServer.enableHeartBeats;
 
 public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private boolean isServer;
-    private HashMap<String, PacketCallback2> callbacks = new HashMap<>();
+    private HashMap<Class<? extends Packet>, PacketCallback2> callbacks = new HashMap<>();
 
     public PacketsHandler() {
     }
@@ -90,7 +91,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
                         }
                         System.out.println("处理器验证" + (isSuccess ? "成功" : "失败"));
                         callback(pk);
-                        callbacks.remove(pk.getPpid());
+                        callbacks.remove(pk.getClass());
                         break;
                     }
                 }
@@ -106,7 +107,6 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
                     var movpkrep = new goldsprite.myUdpNetty.codec.packets.MoveResponsePacket();
                     movpkrep.setSuccess(true);
                     movpkrep.setOwnerGuid(movpk.getOwnerGuid());
-                    movpkrep.setPpid(movpk.getPpid());
                     UdpServer.Instance.sendPacket(movpkrep);
                 } else {
                     System.out.println("验证失败.");
@@ -116,7 +116,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 
             case ICommand.MOVE_RESPONSE: {
                 var movreppk = (goldsprite.myUdpNetty.codec.packets.MoveResponsePacket) packet;
-                callbacks.get(movreppk.getPpid()).callback(movreppk);
+                callback(movreppk);
                 if (movreppk.isSuccess()) {
                     System.out.println("移动成功.");
                 } else {
@@ -126,21 +126,19 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
             }
 
             case ICommand.QUERYROOMINFO_REQUEST: {
-                var qrypk = (goldsprite.myUdpNetty.codec.packets.QueryRoomInfoPacket) packet;
+                var qrypk = (QueryRoomInfoRequestPacket) packet;
                 System.out.println("收到查询包 " + qrypk.toString());
                 //回包
                 if (true) {
                     System.out.println("验证成功");
-                    var qrypkrep = new goldsprite.myUdpNetty.codec.packets.QueryRoomInfoResponsePacket(
+                    var qrypkrep = new QueryRoomInfoResponsePacket(
                             true,
                             "",
-                            qrypk.getPpid(),
                             UdpServer.Instance.clientCount(),
                             4,
                             UdpServer.Instance.clients.values().stream().map(p -> p.name).collect(Collectors.toList()).toArray(new String[]{})
                     );
-                    var dpkRep = PacketCodeC.INSTANCE.encodeDpk(ctx.alloc(), qrypkrep, sender);
-                    ctx.channel().writeAndFlush(dpkRep);
+                    UdpServer.Instance.sendPacket(qrypkrep);
                 } else {
                     System.out.println("验证失败.");
                 }
@@ -151,11 +149,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
                 var qryreppk = (goldsprite.myUdpNetty.codec.packets.QueryRoomInfoResponsePacket) packet;
                 if (qryreppk.isSuccess()) {
                     System.out.println("查询成功.");
-                    var callback = callbacks.get(qryreppk.getPpid());
-                    if (callback != null) {
-                        callback.callback(qryreppk);
-                        callbacks.remove(qryreppk.getPpid());
-                    }
+                    callback(qryreppk);
                 } else {
                     System.out.println("查询失败.");
                 }
@@ -163,7 +157,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
             }
 
             case ICommand.HEARTBEAT_REQUEST: {
-                var hpk = (goldsprite.myUdpNetty.codec.packets.HeartBeatRequestPacket) packet;
+                var hpk = (HeartBeatRequestPacket) packet;
                 switch (hpk.getCode()) {
                     case ICommand.SEND_REQUEST: {
                         var valid = UdpServer.Instance.clients.containsKey(hpk.getOwnerGuid());
@@ -192,7 +186,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
                         }
 //                        System.out.println("处理器验证" + (isSuccess ? "成功" : "失败"));
                         callback(hpk);
-                        callbacks.remove(hpk.getPpid());
+                        callbacks.remove(hpk.getClass());
                         break;
                     }
                 }
@@ -210,7 +204,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 
     //拦截非登录用户包(除正在登录)
     private boolean strangerInterceptor(Packet packet) {
-        if(packet instanceof goldsprite.myUdpNetty.codec.packets.LoginRequestPacket) return false;
+        if(packet instanceof LoginRequestPacket) return false;
         
         var playerGuid = packet.getOwnerGuid();
         return !UdpServer.Instance.isOnline(playerGuid);
@@ -222,7 +216,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
         cause.printStackTrace();
     }
 
-    private String isValid(goldsprite.myUdpNetty.codec.packets.LoginRequestPacket loginpk) {
+    private String isValid(LoginRequestPacket loginpk) {
         if (UdpServer.Instance.clients.containsKey(loginpk.getOwnerGuid())) {
             return "您已经登录.";
         }
@@ -234,7 +228,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
         return true;
     }
 
-    public <T extends Packet> void addCallbackListener(String ppid, PacketCallback2<T> callback) {
+    public <T extends Packet> void addCallbackListener(Class<? extends Packet> ppid, PacketCallback2<T> callback) {
         callbacks.put(ppid, pk -> {
 //            System.out.println("插入空代理...");
             callback.callback((T) pk);
@@ -242,7 +236,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
     }
 
     private <T extends Packet> void callback(T pk) {
-        var callback = callbacks.get(pk.getPpid());
+        var callback = callbacks.get(pk.getClass());
         if (callback != null) {
             callback.callback(pk);
         }
