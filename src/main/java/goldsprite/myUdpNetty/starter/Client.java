@@ -111,16 +111,24 @@ public class Client {
 //                        + "\n在线玩家列表: /list"
 //                        + "\n移动: /move x y z"
                         + "\n消息: /msg message..."
+                        + "\n广播: /broadcast message..."
 //                        + "\n自杀: /kill"
                         ;
                 LogTools.NLog(helpManual);
                 break;
             }
-            case "broadcast": {
+            case "msg": {
                 var msg = String.join(" ", cmd);
                 msg = msg.replaceFirst("msg ", "");
                 LogTools.NLog("你发了: "+msg);
                 cmd_SendMsg(msg);
+                break;
+            }
+            case "broadcast": {
+                var msg = String.join(" ", cmd);
+                msg = msg.replaceFirst("msg ", "");
+                LogTools.NLog("你广播了: "+msg);
+                cmd_SendBroadcast(msg);
                 break;
             }
             case "login": {
@@ -152,7 +160,16 @@ public class Client {
         var pk = new MessageRequestPacket(getOwnerGuid(), msg);
         sendPacket(pk, MessageResponsePacket.class, (rep) -> {
             if(IStatus.isSuccessStatus(rep))
+                LogTools.NLog("信息发送成功.");
+        });
+    }
+
+    private void cmd_SendBroadcast(String msg) {
+        var pk = new BroadcastRequestPacket(getOwnerGuid(), msg);
+        sendPacket(pk, BroadcastResponsePacket.class, (rep) -> {
+            if(IStatus.isSuccessStatus(rep)){
                 LogTools.NLog("广播发送成功.");
+            }
         });
     }
 

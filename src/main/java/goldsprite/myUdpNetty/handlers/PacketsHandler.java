@@ -67,6 +67,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
                 handleLoginResponsePacket(pk);
                 break;
             }
+
             case ICommand.MESSAGE_REQUEST: {
                 MessageRequestPacket pk = (MessageRequestPacket) packet;
                 handleMessageRequestPacket(pk);
@@ -77,6 +78,20 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
                 handleMessageResponsePacket(pk);
                 break;
             }
+
+            case ICommand.BROADCAST_REQUEST: {
+                BroadcastRequestPacket pk = (BroadcastRequestPacket) packet;
+                new Thread(()->{
+                    handleBroadcastRequestPacket(pk);
+                }).start();
+                break;
+            }
+            case ICommand.BROADCAST_RESPONSE: {
+                BroadcastResponsePacket pk = (BroadcastResponsePacket) packet;
+                handleBroadcastResponsePacket(pk);
+                break;
+            }
+
             default:
                 break;
         }
@@ -86,10 +101,20 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 
     }
 
-    private void handleMessageResponsePacket(MessageResponsePacket pk) {
-        Server.Instance.clients.forEach((k, v)->{
-            //广播
+    private void handleBroadcastResponsePacket(BroadcastResponsePacket pk) {
+        LogTools.NLog("收到广播消息: "+pk.getMessage());
+    }
+
+    private void handleBroadcastRequestPacket(BroadcastRequestPacket pk) {
+        var msg = pk.getMessage();
+        //广播
+        Server.Instance.clients.forEach((guid, v)->{
+            var bpk = new BroadcastResponsePacket(guid, IStatus.RETURN_SUCCESS, msg);
+            Server.Instance.sendPacket(bpk);
         });
+    }
+
+    private void handleMessageResponsePacket(MessageResponsePacket pk) {
     }
 
     private void handleMessageRequestPacket(MessageRequestPacket pk) {

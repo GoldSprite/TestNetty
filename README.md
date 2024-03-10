@@ -194,7 +194,7 @@ channel.pipeline().context(name);  //可以获取指定名字处理器
 - 编码和验证融合为encodeAuthentication并增加玩家不在线验证 networkAddress = client.address;
 
 ### 2024.3.11.4-修复一个报错
-- 想显示给自己自己发了啥,在本地Log就行 MessageResponsePacket响应成功  
+- 想显示给自己自己发了啥,在本地Log就行 ``MessageResponsePacket响应成功  ``
 - 可能没put.arrList报空指针``if (pkCallbacks.size() > 0)``  
 - ``pk.setCode(IStatus.RETURN_DEFEAT_LOGIN_REPEAT);  ``
 - 简化.getCode ``IStatus.isSuccessStatus(rep.getCode())  ``
@@ -203,10 +203,29 @@ channel.pipeline().context(name);  //可以获取指定名字处理器
 - 启动器类更名为server和client``UdpServer  ``
 - 没写完, 准备加一个广播包``//广播``
 
-### 2024.3.11.5
+### 2024.3.11.5-增加广播
+- 新增包
+  - 增加广播包 ``BroadcastRequestPacket``
+  - 增加广播指令类型 ``BROADCAST_REQUEST``
+  - 在编解码器增加表 ``packetTypeMap.put(BROADCAST_REQUEST, BroadcastRequestPacket.class);``
+- 处理逻辑
+  - 删掉无用的遍历 ``handleMessageResponsePacket``
+  - 处理广播收发的两个case ``case ICommand.BROADCAST_REQUEST``
+  - 在广播请求包广播给所有人广播响应 ``Server.Instance.clients.forEach((guid, v)->{``
+  - 增加广播terminal指令 ``case "broadcast": {``
+  - terminal帮助``"\n广播: /broadcast message..."``
+- 运行测试+修改
+  - 修bug可能没保存好无限嵌套了 ``return isReturnStatus(pk);``
+  - 这块之后做成NLogDebug和NLogMsg区分开 ``收到包类型: BroadcastResponsePacket``
+  - 忘了得继承ResponsePacket并重写构造 ``BroadcastResponsePacket extends Packet``
+  - 连带更新别忘了传入返回码 ``new BroadcastResponsePacket(guid, IStatus.RETURN_SUCCESS, msg);``
+  - 给玩家展示log``"收到广播消息: "+pk.getMessage()``
+
+### 2024.3.11.6
 
 
 ### 待办
+1. 这块之后做成NLogDebug和NLogMsg区分开``收到包类型: BroadcastResponsePacket``
 2. 把每种包处理逻辑分发不同的类处理
 3. 统一所有输出日志到一个方法: 使用类似NLogV, NLogW, NLogD...
 4. 我似乎忘了我做的是一个网络通信框架, 而不是一个服务器运行器

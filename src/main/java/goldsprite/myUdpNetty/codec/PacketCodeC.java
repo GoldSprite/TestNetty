@@ -30,6 +30,8 @@ public class PacketCodeC {
         packetTypeMap.put(MESSAGE_RESPONSE, MessageResponsePacket.class);
         packetTypeMap.put(LOGIN_REQUEST, LoginRequestPacket.class);
         packetTypeMap.put(LOGIN_RESPONSE, LoginResponsePacket.class);
+        packetTypeMap.put(BROADCAST_REQUEST, BroadcastRequestPacket.class);
+        packetTypeMap.put(BROADCAST_RESPONSE, BroadcastResponsePacket.class);
     }
 
     public ByteBuf encode(ByteBufAllocator bufAllocator, Packet packet) {

@@ -23,4 +23,7 @@ public interface ICommand {
 
     byte CALLBACK_REQUEST = 11;
     byte CALLBACK_RESPONSE = 12;
+
+    byte BROADCAST_REQUEST = 13;
+    byte BROADCAST_RESPONSE = 14;
 }

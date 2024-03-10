@@ -34,14 +34,14 @@ public interface IStatus {
     }
 
     public static boolean isReturnStatus(Packet pk) {
-        return isReturnStatus(pk);
+        return isReturnStatus(pk.getCode());
     }
     public static boolean isReturnStatus(int status) {
         return status / 10000 == 3 || status / 10000 == 4;
     }
 
     public static boolean isSuccessStatus(Packet pk) {
-        return isSuccessStatus(pk);
+        return isSuccessStatus(pk.getCode());
     }
     public static boolean isSuccessStatus(int status) {
         return status / 10000 == 1 || status / 10000 == 3;
