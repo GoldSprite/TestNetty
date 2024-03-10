@@ -1,24 +1,14 @@
 package goldsprite.myUdpNetty.codec.codecInterfaces;
 
-
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+@Data
 public abstract class Packet {
-    @Getter
-    protected byte version = 1;
-    @Getter @Setter
+    private final byte version = 1;
     private int ownerGuid = -1;
-    @Getter @Setter
-    private String code = ICommand.SEND_REQUEST;
-    @Getter @Setter
-    protected String reason = "";
-
-//    public Packet(){}
-//    public Packet(InetSocketAddress sender, InetSocketAddress recipient){
-//        this.sender = sender;
-//        this.recipient = recipient;
-//    }
+    private int code = IStatus.SEND_SUCCESS;
 
     public abstract byte getCommand();
 }

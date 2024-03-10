@@ -23,8 +23,4 @@ public interface ICommand {
 
     byte CALLBACK_REQUEST = 11;
     byte CALLBACK_RESPONSE = 12;
-
-    String SEND_REQUEST = "client_request";
-    String RETURN_SUCCESS = "return_success";
-    String RETURN_DEFEAT = "return_defeat";
 }

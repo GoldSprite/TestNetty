@@ -4,7 +4,9 @@ import lombok.var;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-
+/**
+ * 测试获取泛型方法T实际类型: 结果失败, 只能获取类的泛型类型, 方法不可以, 匿名子类没试
+ */
 public class TestGetGenericClass {
     public static void main(String[] args) {
         new TestGetGenericClass().run();

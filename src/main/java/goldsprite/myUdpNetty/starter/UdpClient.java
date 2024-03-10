@@ -1,12 +1,11 @@
 package goldsprite.myUdpNetty.starter;
 
+import goldsprite.myUdpNetty.codec.codecInterfaces.IStatus;
 import goldsprite.myUdpNetty.codec.packets.*;
 import goldsprite.myUdpNetty.handlers.PacketDecoder;
 import goldsprite.myUdpNetty.handlers.PacketEncoder;
 import goldsprite.myUdpNetty.handlers.PacketsHandler;
-import goldsprite.myUdpNetty.codec.codecInterfaces.ICommand;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
-import goldsprite.myUdpNetty.other.PacketCallback;
 import goldsprite.myUdpNetty.other.ClientInfoStatus;
 import goldsprite.myUdpNetty.other.PacketCallback2;
 import io.netty.bootstrap.Bootstrap;
@@ -103,83 +102,40 @@ public class UdpClient {
         switch (cmdHead) {
             case "help":{
                 var helpManual = "commands: "
-                        + "\n登录: /login name password"
-                        + "\n在线玩家列表: /list"
-                        + "\n移动: /move x y z"
+//                        + "\n登录: /login name password"
+//                        + "\n在线玩家列表: /list"
+//                        + "\n移动: /move x y z"
+                        + "\n消息: /msg message..."
 //                        + "\n自杀: /kill"
                         ;
                 System.out.println(helpManual);
                 break;
             }
+            case "msg": {
+                var msg = String.join(" ", cmd);
+                msg = msg.replaceFirst("msg ", "");
+                Cmd_sendMsg(msg);
+                break;
+            }
             case "login":{
-                var name = cmd[1];
-                var pwd = cmd[2];
-                var pk = new LoginRequestPacket(name, pwd);
-                System.out.println("发登录包..");
-                sendPacket(pk, LoginResponsePacket.class, (p) -> {
-                    var str = "登陆包响应: ";
-                    if (ICommand.RETURN_SUCCESS.equals(p.getCode())) {
-                        str += "登录成功.";
-
-                    } else {
-                        str += "登录失败: " + p.getReason();
-                    }
-                    System.out.println(str);
-                });
-//                login(cmd[1], cmd[2]);
                 break;
             }
             case "list":{
-                queryRoomInfoAsync(pk->{
-                    var qryreppk = (goldsprite.myUdpNetty.codec.packets.QueryRoomInfoResponsePacket) pk;
-                    System.out.println("在线玩家数: " + qryreppk.getPlayerCount());
-                    System.out.println("在线玩家列表: [" + String.join(", ", qryreppk.getPlayerList()) + "]");
-                });
                 break;
             }
             case "move": {
-                Move(Float.parseFloat(cmd[1]), Float.parseFloat(cmd[2]), Float.parseFloat(cmd[3]));
                 break;
             }
             default: System.out.println(helpMsg);
         }
     }
 
-    private void queryRoomInfoAsync(PacketCallback2<QueryRoomInfoResponsePacket> callback) {
-        var qrypk = new QueryRoomInfoRequestPacket();
-        sendPacket(qrypk, QueryRoomInfoResponsePacket.class, callback);
-    }
-
-    private void login(String name, String pwd) {
-//        var callback = new PacketCallback() {
-//            public void run(Packet pk) {
-//                //初始化sever信息
-//                server.loginTimeMillis = System.currentTimeMillis();
-//                server.afkHearts = server.loginTimeMillis + Server.heartTicker;
-//            }
-//        };
-//        var pkHandler = (CustomPacketHandler) channel.pipeline().context("2").handler();
-//        pkHandler.addCallbackListener(callback);
-//        var loginPk = new LoginRequestPacket(name, pwd, callback.ppid);
-//        sendPacket(loginPk);
-    }
-
-    private void Move(float x, float y, float z) {
-        var mpk = new MoveRequestPacket();
-        mpk.setPos(x, y, z);
-        boolean[] reply = {false};
-        new Thread(() -> {
-            try {
-                sendPacket(mpk, MoveResponsePacket.class, pk -> {
-                    reply[0] = true;
-                });
-                Thread.sleep(1000);
-                if (!reply[0]) {
-                    System.out.println("服务器无回复.");
-                }
-            } catch (Exception e) {
-            }
-        }).start();
+    private void Cmd_sendMsg(String msg) {
+        var pk = new MessageRequestPacket(msg);
+        sendPacket(pk, MessageResponsePacket.class, (rep)->{
+            boolean success = rep.getCode() == IStatus.RETURN_SUCCESS;
+            System.out.println("消息发送响应"+(success?"成功":"失败"+"."));
+        });
     }
 
     public void sendPacket(Packet pk) {
@@ -188,41 +144,10 @@ public class UdpClient {
     }
 
     public <T extends Packet> void sendPacket(Packet pk, Class<T> ppid, PacketCallback2<T> callback) {
-//        Class<T> ppid = (Class<T>)((ParameterizedType)callback.getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-//        var clazz = callback.getClass();
-//        Type k = clazz.getGenericInterfaces()[0];
-//        Type k2 = ((ParameterizedType) k).getActualTypeArguments()[0];
-//        Class<T> ppid = (Class<T>) k2;
-//        var ppid = pk.getClass();
         var handler = (PacketsHandler) channel.pipeline().context("2").handler();
         handler.addCallbackListener(ppid, callback);
-//        pk.setPpid(ppid);
         sendPacket(pk);
     }
 
-    public void startHeartBeatThread() {
-        new Thread(() -> {
-            while (true) {
-                try {
-                    //发心跳包
-                    var hpk = new goldsprite.myUdpNetty.codec.packets.HeartBeatRequestPacket(System.currentTimeMillis());
-                    heartReply = false;
-                    sendPacket(hpk, HeartBeatRequestPacket.class, hreppk -> {
-                        //服务器回应
-                        heartReply = true;
-                        server.afkHearts = hreppk.getHeartMillis() + UdpServer.heartTicker;
-                    });
-                    Thread.sleep(UdpClient.ServerWaitOutTime);
-                    if (!heartReply) {  //没收到回应
-                        System.out.println("心跳" + UdpClient.ServerWaitOutTime / 1000 + "s无回应, 服务器已离线.");
-                        return;
-                    }
-
-                    Thread.sleep(UdpServer.heartInterval);
-                } catch (InterruptedException e) {
-                }
-            }
-        }).start();
-    }
 }
 
