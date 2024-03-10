@@ -17,7 +17,10 @@ import lombok.var;
 public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     private boolean isServer;
 
-    public PacketEncoder() {}
+    public PacketEncoder() {
+        this.isServer = false;
+    }
+
     public PacketEncoder(boolean isServer) {
         this.isServer = isServer;
     }
@@ -32,20 +35,20 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
 //        System.out.println(ctx.name()+": CustomPacketEncoderHandler.write");
 
-        var pk = (Packet)msg;
+        //此处填充地址, 并将Packet包裹为DatagramPacket
+        var pk = (Packet) msg;
         DatagramPacket dpk = null;
-        InetSocketAddress ra2 = null;
-        if(!isServer){
+        InetSocketAddress networkAddress = null;
+        if (!isServer) {
             //客户端往服务端: 定向地址, guid自动填充
-            ra2 = UdpClient.Instance.ra2;
-            pk.setOwnerGuid(UdpClient.Instance.ownerGuid);
-        }else{
+            networkAddress = UdpServer.networkAddress;
+        } else {
             //服务端往客户端: 客户端不定(包里自填guid), 地址附带
 
             var client = UdpServer.Instance.clients.get(pk.getOwnerGuid());
-            ra2 = client.address;
+            networkAddress = client.address;
         }
-        dpk = PacketCodeC.INSTANCE.encodeDpk(ctx.alloc(), pk, ra2);
+        dpk = PacketCodeC.INSTANCE.encodeDpk(ctx.alloc(), pk, networkAddress);
         ctx.write(dpk);
 //        ctx.writeAndFlush(msg);
 //        Packet pk = (Packet) msg;

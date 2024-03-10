@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class MoveResponsePacket extends Packet {
     private boolean success;
-    private String reason;
 
     @Override
     public byte getCommand() {

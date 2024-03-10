@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 
 import lombok.var;
 
+import static goldsprite.myUdpNetty.starter.UdpServer.enableHeartBeats;
+
 public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private boolean isServer;
     private HashMap<String, PacketCallback2> callbacks = new HashMap<>();
@@ -83,7 +85,8 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
                         var isSuccess = pk.getCode().equals(ICommand.RETURN_SUCCESS);
                         if (isSuccess) {
                             UdpClient.Instance.ownerGuid = pk.getOwnerGuid();  //获取绑定id
-                            UdpClient.Instance.startHeartBeatThread();  //开启心跳线程
+                            if(enableHeartBeats)
+                                UdpClient.Instance.startHeartBeatThread();  //开启心跳线程
                         }
                         System.out.println("处理器验证" + (isSuccess ? "成功" : "失败"));
                         callback(pk);
@@ -103,6 +106,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
                     var movpkrep = new goldsprite.myUdpNetty.codec.packets.MoveResponsePacket();
                     movpkrep.setSuccess(true);
                     movpkrep.setOwnerGuid(movpk.getOwnerGuid());
+                    movpkrep.setPpid(movpk.getPpid());
                     UdpServer.Instance.sendPacket(movpkrep);
                 } else {
                     System.out.println("验证失败.");
@@ -112,6 +116,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 
             case ICommand.MOVE_RESPONSE: {
                 var movreppk = (goldsprite.myUdpNetty.codec.packets.MoveResponsePacket) packet;
+                callbacks.get(movreppk.getPpid()).callback(movreppk);
                 if (movreppk.isSuccess()) {
                     System.out.println("移动成功.");
                 } else {

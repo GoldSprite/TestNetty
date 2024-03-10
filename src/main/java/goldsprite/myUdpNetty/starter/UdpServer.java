@@ -23,7 +23,14 @@ import static goldsprite.myUdpNetty.tools.LogTools.NLog;
 
 public class UdpServer {
     public static UdpServer Instance;
-    public InetSocketAddress ra = new InetSocketAddress("192.168.1.105", 9007);
+    public static InetSocketAddress localAddress = new InetSocketAddress("0.0.0.0", 34001);  //内
+    public static InetSocketAddress networkAddress = new InetSocketAddress("192.168.1.105", 34001);  //本机局域外
+//    public static InetSocketAddress networkAddress = new InetSocketAddress("112.195.244.107", 34001);  //本机网络外
+//    public static InetSocketAddress networkAddress = new InetSocketAddress("162.14.68.248", 34001);  //云服外
+    public static boolean enableHeartBeats = false;
+    public static int heartTicker = 1000 * 15 * 10;  //millis
+    public static int heartInterval = 1000 * 1;  //millis
+
     public HashMap<Integer, ClientInfoStatus> clients = new HashMap<>();
     public int clientCount() {
         return clients.size();
@@ -33,8 +40,6 @@ public class UdpServer {
     }
     public int endGuid = 0;
     private Channel channel;
-    public static int heartTicker = 1000 * 15 * 10;  //millis
-    public static int heartInterval = 1000 * 1;  //millis
 
 
     public static void main(String[] args) {
@@ -59,12 +64,13 @@ public class UdpServer {
                             ch.pipeline().addLast("3", new PacketEncoder(true));
                         }
                     });
-            channel = (NioDatagramChannel) b.bind(new InetSocketAddress("192.168.1.105", 8007)).sync().channel();
+            channel = (NioDatagramChannel) b.bind(localAddress).sync().channel();
 
-            NLog(UdpClient.remoteAddress2, "$ni.name : $ni.displayName");
-            NLog(UdpClient.remoteAddress2, "udp server($groupAddress.hostName:$groupAddress.port) is running...");
+            NLog("$ni.name : $ni.displayName");
+            NLog("udp server($groupAddress.hostName:$groupAddress.port) is running...");
 
-            startHeartBeatThread();
+            if(enableHeartBeats)
+                startHeartBeatThread();
 
             channel.closeFuture().await();
         } catch (InterruptedException e) {

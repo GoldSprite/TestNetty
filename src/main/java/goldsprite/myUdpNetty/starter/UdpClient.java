@@ -1,5 +1,7 @@
 package goldsprite.myUdpNetty.starter;
 
+import goldsprite.myUdpNetty.codec.packets.HeartBeatRequestPacket;
+import goldsprite.myUdpNetty.codec.packets.MoveResponsePacket;
 import goldsprite.myUdpNetty.handlers.PacketDecoder;
 import goldsprite.myUdpNetty.handlers.PacketEncoder;
 import goldsprite.myUdpNetty.handlers.PacketsHandler;
@@ -25,12 +27,12 @@ import static goldsprite.myUdpNetty.tools.LogTools.NLog;
 
 public class UdpClient {
     public static UdpClient Instance;
+    public static InetSocketAddress localAddress = new InetSocketAddress("0.0.0.0", 8007);  //本地
+    public static int ServerWaitOutTime = 1000 * 3;  //millis
     public ClientInfoStatus server = new ClientInfoStatus();
+    public boolean heartReply = false;
     public int ownerGuid = -1;
     Channel channel;
-    public InetSocketAddress ra2 = new InetSocketAddress("192.168.1.105", 8007);
-    public static int ServerWaitOutTime = 1000 * 3;  //millis
-    public boolean heartReply = false;
 
     public static void main(String[] args) {
 
@@ -43,14 +45,14 @@ public class UdpClient {
     /**
      * 点对点
      */
-    public static final String addr1 = "10.0.0.2";  //
-    public static final String addr1_w = "162.14.68.248";  //
-    public static final String addr2 = "192.168.1.105";
-    public static final String addr2_w = "112.195.244.151";
-    public static InetSocketAddress remoteAddress = new InetSocketAddress(addr2, 8001);  //localhost, 8888
-    public static InetSocketAddress remoteAddress2 = new InetSocketAddress(addr2_w, 34001);  //localhost, 8888
-    public static InetSocketAddress localAddress = new InetSocketAddress(addr2, 30000);  //localhost, 8888
-    public static InetSocketAddress localAddress2 = new InetSocketAddress(addr2_w, 30001);  //localhost, 8888
+//    public static final String addr1 = "10.0.0.2";  //
+//    public static final String addr1_w = "162.14.68.248";  //
+//    public static final String addr2 = "192.168.1.105";
+//    public static final String addr2_w = "112.195.244.151";
+//    public static InetSocketAddress remoteAddress = new InetSocketAddress(addr2, 8001);  //localhost, 8888
+//    public static InetSocketAddress remoteAddress2 = new InetSocketAddress(addr2_w, 34001);  //localhost, 8888
+//    public static InetSocketAddress localAddress = new InetSocketAddress(addr2, 30000);  //localhost, 8888
+//    public static InetSocketAddress localAddress2 = new InetSocketAddress(addr2_w, 30001);  //localhost, 8888
 
     /** 广播地址
      InetSocketAddress remoteAddress = new InetSocketAddress("255.255.255.255", 9000)
@@ -92,7 +94,7 @@ public class UdpClient {
                             ch.pipeline().addLast("3", new PacketEncoder());
                         }
                     });
-            channel = (NioDatagramChannel) b.bind(new InetSocketAddress("192.168.1.105", 9007)).sync().channel();
+            channel = (NioDatagramChannel) b.bind(localAddress).sync().channel();
 
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -182,7 +184,7 @@ public class UdpClient {
             boolean[] reply = {false};
             new Thread(() -> {
                 try {
-                    sendPacket(mpk, pk -> {
+                    sendPacket(mpk, (MoveResponsePacket pk) -> {
                         reply[0] = true;
                     });
                     Thread.sleep(500);
@@ -198,14 +200,15 @@ public class UdpClient {
     }
 
     public void sendPacket(Packet pk) {
+        pk.setOwnerGuid(ownerGuid);
         channel.writeAndFlush(pk);
     }
 
-    public <T extends Packet> void sendPacket(T pk, PacketCallback2<T> callback) {
-        var guid = UUID.randomUUID().toString();
+    public <T extends Packet> void sendPacket(Packet pk, PacketCallback2<T> callback) {
+        var ppid = UUID.randomUUID().toString();
         var handler = (PacketsHandler) channel.pipeline().context("2").handler();
-        handler.addCallbackListener(guid, callback);
-        pk.setPpid(guid);
+        handler.addCallbackListener(ppid, callback);
+        pk.setPpid(ppid);
         sendPacket(pk);
     }
 
@@ -216,7 +219,7 @@ public class UdpClient {
                     //发心跳包
                     var hpk = new goldsprite.myUdpNetty.codec.packets.HeartBeatRequestPacket(System.currentTimeMillis());
                     heartReply = false;
-                    sendPacket(hpk, (hreppk) -> {
+                    sendPacket(hpk, (HeartBeatRequestPacket hreppk) -> {
                         //服务器回应
                         heartReply = true;
                         server.afkHearts = hreppk.getHeartMillis() + UdpServer.heartTicker;
