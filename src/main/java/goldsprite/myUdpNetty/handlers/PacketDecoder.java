@@ -2,6 +2,7 @@ package goldsprite.myUdpNetty.handlers;
 
 import goldsprite.myUdpNetty.codec.PacketCodeC;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
+import goldsprite.myUdpNetty.tools.LogTools;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.socket.DatagramPacket;
@@ -25,12 +26,12 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
-//        System.out.println(ctx.name() + ": CustomPacketDecoderHandler.channelReadComplete");
+//        LogTools.NLog(ctx.name() + ": CustomPacketDecoderHandler.channelReadComplete");
     }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-//        System.out.println(ctx.name() + ": CustomPacketDecoderHandler.channelRead");
+//        LogTools.NLog(ctx.name() + ": CustomPacketDecoderHandler.channelRead");
 
         if (!(msg instanceof DatagramPacket)) throw new Exception("数据包格式异常.");
         DatagramPacket dpk = (DatagramPacket) msg;
@@ -42,7 +43,7 @@ public class PacketDecoder extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        System.out.println("处理器异常: ");
+        LogTools.NLog("处理器异常: ");
         cause.printStackTrace();
     }
 }

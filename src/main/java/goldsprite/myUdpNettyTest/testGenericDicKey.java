@@ -2,6 +2,7 @@ package goldsprite.myUdpNettyTest;
 
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
 import goldsprite.myUdpNetty.other.PacketCallback2;
+import goldsprite.myUdpNetty.tools.LogTools;
 //import lombok.var;
 
 import java.util.HashMap;
@@ -17,16 +18,16 @@ public class testGenericDicKey {
     }
 
     public testGenericDicKey(){
-        System.out.println(new APacket().getName());
-        System.out.println(new BPacket().getName());
+        LogTools.NLog(new APacket().getName());
+        LogTools.NLog(new BPacket().getName());
 
         //添加回调: 自动根据泛型指定字典键
         addCallback((BPacket pk)->{
-            System.out.println(pk.getName()+": 客户端得到响应, 触发回调.");
+            LogTools.NLog(pk.getName()+": 客户端得到响应, 触发回调.");
         });
 
         var pkResponse = new BPacket();
-        System.out.println("服务端创建响应包: "+pkResponse.getName());
+        LogTools.NLog("服务端创建响应包: "+pkResponse.getName());
         callbacks.get(pkResponse.getClass()).callback(new BPacket());
     }
 

@@ -8,11 +8,14 @@ import goldsprite.myUdpNetty.handlers.PacketsHandler;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
 import goldsprite.myUdpNetty.other.ClientInfoStatus;
 import goldsprite.myUdpNetty.other.PacketCallback2;
+import goldsprite.myUdpNetty.tools.LogTools;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.net.InetSocketAddress;
 import java.util.Scanner;
@@ -25,7 +28,9 @@ public class UdpClient {
     public static int ServerWaitOutTime = 1000 * 3;  //millis
     public ClientInfoStatus server = new ClientInfoStatus();
     public boolean heartReply = false;
-    public int ownerGuid = -1;
+    @Getter
+    @Setter
+    private int ownerGuid = -1;
     Channel channel;
 
     public static void main(String[] args) {
@@ -60,7 +65,7 @@ public class UdpClient {
     void startClient() {
         bind();
 
-        System.out.println(helpMsg);
+        LogTools.NLog(helpMsg);
         while (true) {
             Scanner scan = new Scanner(System.in);
             var str = scan.nextLine();
@@ -100,7 +105,7 @@ public class UdpClient {
     private void DecodeCommand(String[] cmd) throws Exception {
         var cmdHead = cmd[0];
         switch (cmdHead) {
-            case "help":{
+            case "help": {
                 var helpManual = "commands: "
 //                        + "\n登录: /login name password"
 //                        + "\n在线玩家列表: /list"
@@ -108,38 +113,47 @@ public class UdpClient {
                         + "\n消息: /msg message..."
 //                        + "\n自杀: /kill"
                         ;
-                System.out.println(helpManual);
+                LogTools.NLog(helpManual);
                 break;
             }
             case "msg": {
                 var msg = String.join(" ", cmd);
                 msg = msg.replaceFirst("msg ", "");
-                Cmd_sendMsg(msg);
+                cmd_SendMsg(msg);
                 break;
             }
-            case "login":{
+            case "login": {
+                cmd_Login(cmd[1], cmd[2]);
                 break;
             }
-            case "list":{
+            case "list": {
                 break;
             }
             case "move": {
                 break;
             }
-            default: System.out.println(helpMsg);
+            default:
+                LogTools.NLog(helpMsg);
         }
     }
 
-    private void Cmd_sendMsg(String msg) {
-        var pk = new MessageRequestPacket(msg);
-        sendPacket(pk, MessageResponsePacket.class, (rep)->{
-            boolean success = rep.getCode() == IStatus.RETURN_SUCCESS;
-            System.out.println("消息发送响应"+(success?"成功":"失败"+"."));
+    private void cmd_Login(String userName, String password) {
+        var pk = new LoginRequestPacket(getOwnerGuid(), userName, password);
+        sendPacket(pk, LoginResponsePacket.class, (rep) -> {
+            if (IStatus.isSuccessStatus(rep.getCode())){
+                setOwnerGuid(rep.getOwnerGuid());
+                LogTools.NLog("登录成功.");
+            }
         });
     }
 
+    private void cmd_SendMsg(String msg) {
+        var pk = new MessageRequestPacket(getOwnerGuid(), msg);
+        sendPacket(pk, MessageResponsePacket.class, (rep) -> {});
+    }
+
     public void sendPacket(Packet pk) {
-        pk.setOwnerGuid(ownerGuid);
+        pk.setOwnerGuid(getOwnerGuid());
         channel.writeAndFlush(pk);
     }
 

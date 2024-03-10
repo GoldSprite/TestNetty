@@ -1,9 +1,8 @@
 package goldsprite.myUdpNetty.codec;
 
-import goldsprite.myUdpNetty.codec.packets.MoveRequestPacket;
 import goldsprite.myUdpNetty.codec.codecInterfaces.ISerializer;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
-import goldsprite.myUdpNetty.codec.packets.QueryRoomInfoRequestPacket;
+import goldsprite.myUdpNetty.codec.packets.*;
 import goldsprite.myUdpNetty.codec.serializers.JSONSerializer;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -27,15 +26,10 @@ public class PacketCodeC {
         ISerializer serializer = new JSONSerializer();
         serializerMap.put(serializer.getSerializerAlgorithm(), serializer);
 
-        packetTypeMap.put(LOGIN_REQUEST, goldsprite.myUdpNetty.codec.packets.LoginRequestPacket.class);
-        packetTypeMap.put(LOGIN_RESPONSE, goldsprite.myUdpNetty.codec.packets.LoginResponsePacket.class);
-        packetTypeMap.put(MESSAGE_REQUEST, goldsprite.myUdpNetty.codec.packets.MessageRequestPacket.class);
-        packetTypeMap.put(MESSAGE_RESPONSE, goldsprite.myUdpNetty.codec.packets.MessageResponsePacket.class);
-        packetTypeMap.put(MOVE_REQUEST, MoveRequestPacket.class);
-        packetTypeMap.put(MOVE_RESPONSE, goldsprite.myUdpNetty.codec.packets.MoveResponsePacket.class);
-        packetTypeMap.put(QUERYROOMINFO_REQUEST, QueryRoomInfoRequestPacket.class);
-        packetTypeMap.put(QUERYROOMINFO_RESPONSE, goldsprite.myUdpNetty.codec.packets.QueryRoomInfoResponsePacket.class);
-        packetTypeMap.put(HEARTBEAT_REQUEST, goldsprite.myUdpNetty.codec.packets.HeartBeatRequestPacket.class);
+        packetTypeMap.put(MESSAGE_REQUEST, MessageRequestPacket.class);
+        packetTypeMap.put(MESSAGE_RESPONSE, MessageResponsePacket.class);
+        packetTypeMap.put(LOGIN_REQUEST, LoginRequestPacket.class);
+        packetTypeMap.put(LOGIN_RESPONSE, LoginResponsePacket.class);
     }
 
     public ByteBuf encode(ByteBufAllocator bufAllocator, Packet packet) {

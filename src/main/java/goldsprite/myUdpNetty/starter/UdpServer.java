@@ -1,11 +1,12 @@
 package goldsprite.myUdpNetty.starter;
 
+import goldsprite.myUdpNetty.codec.packets.LoginRequestPacket;
 import goldsprite.myUdpNetty.handlers.PacketDecoder;
 import goldsprite.myUdpNetty.handlers.PacketEncoder;
 import goldsprite.myUdpNetty.handlers.PacketsHandler;
-import goldsprite.myUdpNetty.codec.packets.LoginRequestPacket;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
 import goldsprite.myUdpNetty.other.ClientInfoStatus;
+import goldsprite.myUdpNetty.tools.LogTools;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
@@ -28,6 +29,7 @@ public class UdpServer {
 //    public static InetSocketAddress networkAddress = new InetSocketAddress("112.195.244.107", 34001);  //本机网络外
 //    public static InetSocketAddress networkAddress = new InetSocketAddress("162.14.68.248", 34001);  //云服外
     public static boolean enableHeartBeats = false;
+    public static boolean strangerIntercept = false;
     public static int heartTicker = 1000 * 15 * 10;  //millis
     public static int heartInterval = 1000 * 1;  //millis
 
@@ -86,11 +88,11 @@ public class UdpServer {
         new Thread(() -> {
             while (channel.isActive()) {
                 var removeList = clients.entrySet().stream().filter(p -> {
-//                    System.out.println("心跳线程..");
+//                    LogTools.NLog("心跳线程..");
                     var clientInfo = p.getValue();
                     //移除离线客户端
                     if (System.currentTimeMillis() > clientInfo.afkHearts) {
-                        System.out.println("客户端[" + p.getKey() + "-" + clientInfo.name + "-" + clientInfo.address + "]已离线.");
+                        LogTools.NLog("客户端[" + p.getKey() + "-" + clientInfo.name + "-" + clientInfo.address + "]已离线.");
                         return true;
                     }
                     return false;
@@ -106,15 +108,12 @@ public class UdpServer {
         }).start();
     }
 
-    public boolean addClient(LoginRequestPacket loginpk, InetSocketAddress sender, int newGuid) {
-        if (clients.containsKey(loginpk.getOwnerGuid())) return false;
-//        if (clients.containsKey(loginpk.getOwnerGuid())) {
-//            clients.remove(loginpk.getOwnerGuid());
-//        }
+    public boolean loginClient(LoginRequestPacket pk, InetSocketAddress sender, int newGuid) {
+        if (isOnline(pk.getOwnerGuid())) return false;
 
         var clientInfo = new ClientInfoStatus();
         clientInfo.address = sender;
-        clientInfo.name = loginpk.getUserName();
+        clientInfo.name = pk.getUserName();
         clientInfo.loginTimeMillis = System.currentTimeMillis();
         clientInfo.afkHearts = System.currentTimeMillis() + heartTicker;
         clients.put(newGuid, clientInfo);

@@ -4,8 +4,8 @@ package goldsprite.myUdpNetty.handlers;
 import goldsprite.myUdpNetty.codec.PacketCodeC;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
 import goldsprite.myUdpNetty.other.ClientInfoStatus;
-import goldsprite.myUdpNetty.starter.UdpClient;
 import goldsprite.myUdpNetty.starter.UdpServer;
+import goldsprite.myUdpNetty.tools.LogTools;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
@@ -28,16 +28,16 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
 
     @Override
     public void flush(ChannelHandlerContext ctx) throws Exception {
-//        System.out.println(ctx.name()+": CustomPacketEncoderHandler.flush");
+//        LogTools.NLog(ctx.name()+": CustomPacketEncoderHandler.flush");
         ctx.flush();
     }
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
-//        System.out.println(ctx.name()+": CustomPacketEncoderHandler.write");
-
+//        LogTools.NLog(ctx.name()+": CustomPacketEncoderHandler.write");
         DatagramPacket dpk = encodeDpk((Packet) msg, ctx);
-        ctx.write(dpk);
+        if(dpk != null)
+            ctx.write(dpk);
     }
 
     //将Packet包裹为DatagramPacket
@@ -47,8 +47,18 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
             ClientInfoStatus client = UdpServer.Instance.clients.get(pk.getOwnerGuid());
             networkAddress = client.address;
         }
-
         DatagramPacket dpk = PacketCodeC.INSTANCE.encodeDpk(ctx.alloc(), pk, networkAddress);
-        return dpk;
+        if(completeAuthentication(pk, networkAddress)) return dpk;
+        return null;
     }
+
+    private boolean completeAuthentication(Packet pk, InetSocketAddress remoteAddress) {
+        var info = "发包验证异常: ";
+        if(remoteAddress == null){
+            LogTools.NLog(info+"发送地址为空.");
+            return false;
+        }
+        return true;
+    }
+
 }

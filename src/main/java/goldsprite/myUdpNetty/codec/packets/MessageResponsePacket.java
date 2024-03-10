@@ -1,17 +1,12 @@
 package goldsprite.myUdpNetty.codec.packets;
 
 import goldsprite.myUdpNetty.codec.codecInterfaces.ICommand;
-import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@NoArgsConstructor
-@AllArgsConstructor
-@Data
-public class MessageResponsePacket extends Packet {
-    private boolean success;
-    private String reason;
+public class MessageResponsePacket extends ResponsePacket {
+
+    public MessageResponsePacket(int ownerGuid, int repCode) {
+        super(ownerGuid, repCode);
+    }
 
     @Override
     public byte getCommand() {

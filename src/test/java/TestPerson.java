@@ -19,10 +19,10 @@
 //        // 调用Gson的String toJson(Object)方法将Bean转换为json字符串
 //        String pJson = gson.toJson(p);
 //
-//        System.out.println("personStr: " + p);
-//        System.out.println("json: " + pJson);
+//        LogTools.NLog("personStr: " + p);
+//        LogTools.NLog("json: " + pJson);
 //        Person person = gson.fromJson(pJson, Person.class);
-//        System.out.println("JsonToPerson: " + person);
+//        LogTools.NLog("JsonToPerson: " + person);
 //        // {"name":"艾伦·耶格尔","age":16,"isMale":true,"hobbies":["自由","迫害莱纳"]}
 //    }
 //
@@ -31,21 +31,21 @@
 //        List<Person> list = new ArrayList<Person>();
 //        list.add(new Person("三笠·阿克曼", 16, false, Arrays.asList("砍巨人", "保护艾伦")));
 //        list.add(new Person("阿明·阿诺德", 16, true, Arrays.asList("看书", "玩海螺")));
-//        System.out.println(list);
+//        LogTools.NLog(list);
 //        // 创建Gson实例
 //        Gson gson = new Gson();
 //        // 调用Gson的toJson方法
 //        String listJson = gson.toJson(list);
-//        System.out.println(listJson);
+//        LogTools.NLog(listJson);
 //        // [{"name":"三笠·阿克曼","age":16,"isMale":false,"hobbies":["砍巨人","保护艾伦"]},{"name":"阿明·阿诺德","age":16,"isMale":true,"hobbies":["看书","玩海螺"]}]
 //
 //        List fromJson = gson.fromJson(listJson, List.class);
-//        System.out.println(fromJson.get(0).getClass());
+//        LogTools.NLog(fromJson.get(0).getClass());
 //        // class com.google.gson.internal.LinkedTreeMap
 //
 //        // 调用Gson的 T fromJson(String, Type)将List集合的json串反序列化为List对象
 //        List<Person> plist = gson.fromJson(listJson, new TypeToken<List<Person>>(){}.getType());
-//        System.out.println(plist);
+//        LogTools.NLog(plist);
 //        // [Person{name='三笠·阿克曼', age=16, isMale=false, hobbies=[砍巨人, 保护艾伦]}, Person{name='阿明·阿诺德', age=16, isMale=true, hobbies=[看书, 玩海螺]}]
 //    }
 //
@@ -58,10 +58,10 @@
 //        Gson gson = new Gson();
 //        String mapJson = gson.toJson(map);
 //
-//        System.out.println(mapJson);
+//        LogTools.NLog(mapJson);
 //        // {"p1":{"name":"利威尔·阿克曼","age":35,"isMale":true,"hobbies":["砍猴儿","打扫卫生"]},"p2":{"name":"韩吉·佐耶","age":33,"isMale":false,"hobbies":["研究巨人","讲故事"]}}
 //        Map<String, Person> jsonMap = gson.fromJson(mapJson, new TypeToken<Map<String, Person>>() { }.getType());
-//        System.out.println(jsonMap);
+//        LogTools.NLog(jsonMap);
 //    }
 //
 //}
