@@ -22,8 +22,8 @@ import java.util.Scanner;
 
 //import lombok.var;
 
-public class UdpClient {
-    public static UdpClient Instance;
+public class Client {
+    public static Client Instance;
     public static InetSocketAddress localAddress = new InetSocketAddress("0.0.0.0", 8007);  //本地
     public static int ServerWaitOutTime = 1000 * 3;  //millis
     public ClientInfoStatus server = new ClientInfoStatus();
@@ -35,7 +35,7 @@ public class UdpClient {
 
     public static void main(String[] args) {
 
-        Instance = new UdpClient();
+        Instance = new Client();
 
         Instance.startClient();
     }
@@ -116,9 +116,10 @@ public class UdpClient {
                 LogTools.NLog(helpManual);
                 break;
             }
-            case "msg": {
+            case "broadcast": {
                 var msg = String.join(" ", cmd);
                 msg = msg.replaceFirst("msg ", "");
+                LogTools.NLog("你发了: "+msg);
                 cmd_SendMsg(msg);
                 break;
             }
@@ -140,7 +141,7 @@ public class UdpClient {
     private void cmd_Login(String userName, String password) {
         var pk = new LoginRequestPacket(getOwnerGuid(), userName, password);
         sendPacket(pk, LoginResponsePacket.class, (rep) -> {
-            if (IStatus.isSuccessStatus(rep.getCode())){
+            if (IStatus.isSuccessStatus(rep)){
                 setOwnerGuid(rep.getOwnerGuid());
                 LogTools.NLog("登录成功.");
             }
@@ -149,7 +150,10 @@ public class UdpClient {
 
     private void cmd_SendMsg(String msg) {
         var pk = new MessageRequestPacket(getOwnerGuid(), msg);
-        sendPacket(pk, MessageResponsePacket.class, (rep) -> {});
+        sendPacket(pk, MessageResponsePacket.class, (rep) -> {
+            if(IStatus.isSuccessStatus(rep))
+                LogTools.NLog("广播发送成功.");
+        });
     }
 
     public void sendPacket(Packet pk) {

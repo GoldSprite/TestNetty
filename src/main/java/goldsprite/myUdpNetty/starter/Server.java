@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 
 import static goldsprite.myUdpNetty.tools.LogTools.NLog;
 
-public class UdpServer {
-    public static UdpServer Instance;
+public class Server {
+    public static Server Instance;
     public static InetSocketAddress localAddress = new InetSocketAddress("0.0.0.0", 34001);  //内
     public static InetSocketAddress networkAddress = new InetSocketAddress("192.168.1.105", 34001);  //本机局域外
 //    public static InetSocketAddress networkAddress = new InetSocketAddress("112.195.244.107", 34001);  //本机网络外
@@ -46,7 +46,7 @@ public class UdpServer {
 
     public static void main(String[] args) {
 
-        Instance = new UdpServer();
+        Instance = new Server();
 
         Instance.run();
     }

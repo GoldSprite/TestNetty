@@ -5,7 +5,7 @@ import goldsprite.myUdpNetty.codec.packets.*;
 import goldsprite.myUdpNetty.other.PacketCallback2;
 import goldsprite.myUdpNetty.codec.codecInterfaces.ICommand;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
-import goldsprite.myUdpNetty.starter.UdpServer;
+import goldsprite.myUdpNetty.starter.Server;
 import goldsprite.myUdpNetty.tools.LogTools;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -46,7 +46,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
         var sender = dpk.sender();
         var packet = goldsprite.myUdpNetty.codec.PacketCodeC.INSTANCE.decode(dpk.content());
 
-        LogTools.NLog("收到包类型: "+packet.getClass().getSimpleName());
+        LogTools.NLog("收到包类型: " + packet.getClass().getSimpleName());
 //        if(strangerIntercept)
 //            if(isServer){
 //                var intercept = strangerInterceptor(packet);
@@ -81,17 +81,20 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
                 break;
         }
 
-        if (IStatus.isReturnStatus(packet.getCode()))
+        if (IStatus.isReturnStatus(packet))
             callback(packet);
 
     }
 
     private void handleMessageResponsePacket(MessageResponsePacket pk) {
+        Server.Instance.clients.forEach((k, v)->{
+            //广播
+        });
     }
 
     private void handleMessageRequestPacket(MessageRequestPacket pk) {
         var rep = new MessageResponsePacket(pk.getOwnerGuid(), IStatus.RETURN_SUCCESS);
-        UdpServer.Instance.sendPacket(rep);
+        Server.Instance.sendPacket(rep);
     }
 
     private void handleLoginResponsePacket(LoginResponsePacket pk) {
@@ -99,17 +102,20 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 
     private void handleLoginRequestPacket(LoginRequestPacket pk, InetSocketAddress sender) {
         var status = loginAuthentication(pk);
-        var newGuid = UdpServer.Instance.endGuid++;
-        UdpServer.Instance.loginClient(pk, sender, newGuid);
+        var newGuid = pk.getOwnerGuid();
+        if (IStatus.isSuccessStatus(status)) {
+            newGuid = Server.Instance.endGuid++;
+            Server.Instance.loginClient(pk, sender, newGuid);
+        }
 
         var rep = new LoginResponsePacket(newGuid, status);
-        UdpServer.Instance.sendPacket(rep);
+        Server.Instance.sendPacket(rep);
     }
 
     private int loginAuthentication(LoginRequestPacket pk) {
         var statusId = IStatus.RETURN_SUCCESS;
-        if (UdpServer.Instance.isOnline(pk.getOwnerGuid())) {
-            LogTools.NLog(IStatus.msgMap.get(IStatus.RETURN_DEFEAT_LOGIN_REPEAT));
+        if (Server.Instance.isOnline(pk.getOwnerGuid())) {
+            LogTools.NLog(IStatus.getStatusMsg(pk, IStatus.RETURN_DEFEAT_LOGIN_REPEAT));
             return IStatus.RETURN_DEFEAT_LOGIN_REPEAT;
         }
         return statusId;
@@ -142,7 +148,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 //    }
 
     public <T extends Packet> void addCallbackListener(Class<? extends Packet> ppid, PacketCallback2<T> callback) {
-        if(!callbacks.containsKey(ppid)) callbacks.put(ppid, new ArrayList<>());
+        if (!callbacks.containsKey(ppid)) callbacks.put(ppid, new ArrayList<>());
         var pkCallbacks = callbacks.get(ppid);
         pkCallbacks.add((pk) -> {
             LogTools.NLog(IStatus.getStatusMsg(pk));
@@ -152,8 +158,8 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 
     private <T extends Packet> void callback(T pk) {
         var pkCallbacks = callbacks.get(pk.getClass());
-        if (pkCallbacks.size() > 0) {
-            pkCallbacks.forEach((p)->p.callback(pk));
+        if (pkCallbacks != null && pkCallbacks.size() > 0) {
+            pkCallbacks.forEach((p) -> p.callback(pk));
             pkCallbacks.clear();
         }
     }

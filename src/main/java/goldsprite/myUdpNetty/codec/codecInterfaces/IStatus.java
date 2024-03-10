@@ -12,27 +12,38 @@ public interface IStatus {
     int RETURN_SUCCESS = 30001;
     int RETURN_DEFEAT = 40001;
 
-    int RETURN_SUCCESS_LOGIN = 30100;
-    String MSG_RETURN_SUCCESS_LOGIN = "登录成功";
-    int RETURN_DEFEAT_LOGIN_REPEAT = 40100;
+//    int RETURN_SUCCESS_LOGIN = 30101;
+//    String MSG_RETURN_SUCCESS_LOGIN = "登录成功";
+    int RETURN_DEFEAT_LOGIN_REPEAT = 40101;
     String MSG_RETURN_DEFEAT_LOGIN_REPEAT = "重复登陆";
 
     public static HashMap<Integer, String> msgMap = new HashMap<Integer, String>() {{
-        put(RETURN_SUCCESS_LOGIN, MSG_RETURN_SUCCESS_LOGIN);
+//        put(RETURN_SUCCESS_LOGIN, MSG_RETURN_SUCCESS_LOGIN);
         put(RETURN_DEFEAT_LOGIN_REPEAT, MSG_RETURN_DEFEAT_LOGIN_REPEAT);
     }};
 
-    public static String getStatusMsg(Packet pk) {
-        var status = pk.getCode();
-        var msg = pk.getClass().getSimpleName()+(isReturnStatus(status)?"响应":"发送")+(isSuccessStatus(status)?"成功.":"失败, reason: "+msgMap.get(status));
+    public static String getStatusMsg(Packet pk, int status) {
+        var msg = pk.getClass().getSimpleName()
+                + (isReturnStatus(status) ? "响应" : "发送")
+                + (isSuccessStatus(status) ? "成功." : "失败, reason: "
+                + (msgMap.get(status) == null ? "" : msgMap.get(status)));
         return msg;
     }
-
-    public static boolean isReturnStatus(int status) {
-        return status /10000 == 3  || status/10000 == 4;
+    public static String getStatusMsg(Packet pk) {
+        return getStatusMsg(pk, pk.getCode());
     }
 
+    public static boolean isReturnStatus(Packet pk) {
+        return isReturnStatus(pk);
+    }
+    public static boolean isReturnStatus(int status) {
+        return status / 10000 == 3 || status / 10000 == 4;
+    }
+
+    public static boolean isSuccessStatus(Packet pk) {
+        return isSuccessStatus(pk);
+    }
     public static boolean isSuccessStatus(int status) {
-        return status /10000 == 1  || status/10000 == 3;
+        return status / 10000 == 1 || status / 10000 == 3;
     }
 }

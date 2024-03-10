@@ -185,6 +185,26 @@ channel.pipeline().context(name);  //可以获取指定名字处理器
 
 ### 2024.3.11.3
 - 消息响应
+- 重复登陆不回复的问题
+- 完善IStatus回复文本
+- 更新老方法 IStatus.msgMap.get(IStatus.RETURN_DEFEAT_LOGIN_REPEAT)
+- 登录验证通过才可录入 UdpServer.Instance.endGuid++; 
+- 状态码尾号1开始 RETURN_SUCCESS_LOGIN = 30100 
+- PacketEncoder没有处理异常增加一个在write exceptionCaught 
+- 编码和验证融合为encodeAuthentication并增加玩家不在线验证 networkAddress = client.address;
+
+### 2024.3.11.4-修复一个报错
+- 想显示给自己自己发了啥,在本地Log就行 MessageResponsePacket响应成功  
+- 可能没put.arrList报空指针``if (pkCallbacks.size() > 0)``  
+- ``pk.setCode(IStatus.RETURN_DEFEAT_LOGIN_REPEAT);  ``
+- 简化.getCode ``IStatus.isSuccessStatus(rep.getCode())  ``
+- 成功状态没有信息, 用不上``String MSG_RETURN_SUCCESS_LOGIN = "登录成功";  ``
+- ``handleMessageResponsePacket(MessageResponsePacket pk) {}``
+- 启动器类更名为server和client``UdpServer  ``
+- 没写完, 准备加一个广播包``//广播``
+
+### 2024.3.11.5
+
 
 ### 待办
 2. 把每种包处理逻辑分发不同的类处理

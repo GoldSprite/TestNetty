@@ -4,7 +4,7 @@ package goldsprite.myUdpNetty.handlers;
 import goldsprite.myUdpNetty.codec.PacketCodeC;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
 import goldsprite.myUdpNetty.other.ClientInfoStatus;
-import goldsprite.myUdpNetty.starter.UdpServer;
+import goldsprite.myUdpNetty.starter.Server;
 import goldsprite.myUdpNetty.tools.LogTools;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelOutboundHandlerAdapter;
@@ -35,30 +35,38 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
 //        LogTools.NLog(ctx.name()+": CustomPacketEncoderHandler.write");
-        DatagramPacket dpk = encodeDpk((Packet) msg, ctx);
-        if(dpk != null)
-            ctx.write(dpk);
+        try{
+            DatagramPacket dpk = encodeAuthentication((Packet) msg, ctx);
+            if(dpk != null)
+                ctx.write(dpk);
+        }catch (Exception e){
+            exceptionCaught(e);
+        }
     }
 
     //将Packet包裹为DatagramPacket
-    private DatagramPacket encodeDpk(Packet pk, ChannelHandlerContext ctx) {
-        InetSocketAddress networkAddress = UdpServer.networkAddress;
+    private DatagramPacket encodeAuthentication(Packet pk, ChannelHandlerContext ctx) {
+        var info = "发包验证异常: ";
+        InetSocketAddress networkAddress = Server.networkAddress;
         if(isServer){
-            ClientInfoStatus client = UdpServer.Instance.clients.get(pk.getOwnerGuid());
+            if(!Server.Instance.isOnline(pk.getOwnerGuid())){
+                LogTools.NLog(info+"该玩家不在线上.");
+                return null;
+            }
+            ClientInfoStatus client = Server.Instance.clients.get(pk.getOwnerGuid());
             networkAddress = client.address;
         }
+        if(networkAddress == null){
+            LogTools.NLog(info+"发送地址为空.");
+            return null;
+        }
         DatagramPacket dpk = PacketCodeC.INSTANCE.encodeDpk(ctx.alloc(), pk, networkAddress);
-        if(completeAuthentication(pk, networkAddress)) return dpk;
-        return null;
+        return dpk;
     }
 
-    private boolean completeAuthentication(Packet pk, InetSocketAddress remoteAddress) {
-        var info = "发包验证异常: ";
-        if(remoteAddress == null){
-            LogTools.NLog(info+"发送地址为空.");
-            return false;
-        }
-        return true;
+    public void exceptionCaught(Exception e) throws Exception {
+        LogTools.NLog("处理器异常: ");
+        e.printStackTrace();
     }
 
 }
