@@ -13,7 +13,7 @@ import io.netty.channel.socket.DatagramPacket;
 
 import java.net.InetSocketAddress;
 
-import lombok.var;
+//import lombok.var;
 
 public class PacketEncoder extends ChannelOutboundHandlerAdapter {
     private boolean isServer;

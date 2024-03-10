@@ -13,7 +13,7 @@ import io.netty.channel.socket.DatagramPacket;
 import java.util.HashMap;
 import java.util.stream.Collectors;
 
-import lombok.var;
+//import lombok.var;
 
 public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private boolean isServer;
@@ -81,6 +81,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
     }
 
     private void handleMessageRequestPacket(MessageRequestPacket pk) {
+
     }
 
     private void handleLoginResponsePacket(LoginResponsePacket pk) {

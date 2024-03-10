@@ -2,7 +2,7 @@ package goldsprite.myUdpNettyTest;
 
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
 import goldsprite.myUdpNetty.other.PacketCallback2;
-import lombok.var;
+//import lombok.var;
 
 import java.util.HashMap;
 

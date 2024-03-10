@@ -158,8 +158,11 @@ channel.pipeline().context(name);  //可以获取指定名字处理器
  - [x] 美化代码结构: Packet, PacketEncoder.java, 
  - [x] 清空所有包处理逻辑
 
-### 2024.3.11.0
+### 2024.3.11.0-项目重新转j11
+ - 注释所有lombok.var
+ - 项目重新转j11
 
+### 2024.3.11.1
 
 
 ### 待办

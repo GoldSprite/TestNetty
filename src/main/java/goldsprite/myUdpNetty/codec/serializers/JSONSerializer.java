@@ -2,7 +2,7 @@ package goldsprite.myUdpNetty.codec.serializers;
 import com.google.gson.Gson;
 import goldsprite.myUdpNetty.codec.codecInterfaces.ISerializer;
 import goldsprite.myUdpNetty.codec.codecInterfaces.ISerializerAlgorithm;
-import lombok.var;
+//import lombok.var;
 
 import java.nio.charset.StandardCharsets;
 

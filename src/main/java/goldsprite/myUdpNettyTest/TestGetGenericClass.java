@@ -1,6 +1,6 @@
 package goldsprite.myUdpNettyTest;
 
-import lombok.var;
+//import lombok.var;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

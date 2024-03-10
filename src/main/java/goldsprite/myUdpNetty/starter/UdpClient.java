@@ -17,7 +17,7 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import java.net.InetSocketAddress;
 import java.util.Scanner;
 
-import lombok.var;
+//import lombok.var;
 
 public class UdpClient {
     public static UdpClient Instance;
