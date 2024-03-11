@@ -1,4 +1,4 @@
-package goldsprite.myUdpNettyTest;
+package myUdpNettyTest;
 
 import goldsprite.myUdpNetty.tools.LogTools;
 //import lombok.var;

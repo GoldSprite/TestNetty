@@ -1,4 +1,4 @@
-package goldsprite.myUdpNettyTest;
+package myUdpNettyTest;
 
 import java.util.List;
 
