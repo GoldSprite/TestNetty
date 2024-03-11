@@ -55,6 +55,7 @@ public class PacketEncoder extends ChannelOutboundHandlerAdapter {
             }
             ClientInfoStatus client = Server.Instance.clients.get(pk.getOwnerGuid());
             networkAddress = client.address;
+            LogTools.NLogDebug("目标玩家地址: "+networkAddress);
         }
         if(networkAddress == null){
             LogTools.NLogInfo(info+"发送地址为空.");

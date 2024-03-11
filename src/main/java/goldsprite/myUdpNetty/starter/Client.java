@@ -8,6 +8,7 @@ import goldsprite.myUdpNetty.handlers.PacketsHandler;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
 import goldsprite.myUdpNetty.other.ClientInfoStatus;
 import goldsprite.myUdpNetty.other.PacketCallback2;
+import goldsprite.myUdpNetty.tools.ILogLevel;
 import goldsprite.myUdpNetty.tools.LogTools;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
@@ -112,6 +113,7 @@ public class Client {
 //                        + "\n移动: /move x y z"
                         + "\n消息: /msg message..."
                         + "\n广播: /broadcast message..."
+                        + "\n日志等级: /loglevel int-level(1~5) int-onoff(0~1)"
 //                        + "\n自杀: /kill"
                         ;
                 LogTools.NLogInfo(helpManual);
@@ -139,6 +141,13 @@ public class Client {
                 break;
             }
             case "move": {
+                break;
+            }
+            case "loglevel": {
+                var key = Integer.parseInt(cmd[1]);
+                var onoff = "1".equals(cmd[2]);
+                LogTools.logLevels.replace(key, onoff);
+                LogTools.NLog(ILogLevel.FORCE, "logLevel-"+ILogLevel.getLogMsg(key)+(onoff?"开启":"关闭")+".");
                 break;
             }
             default:

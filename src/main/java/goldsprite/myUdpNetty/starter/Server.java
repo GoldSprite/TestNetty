@@ -25,9 +25,9 @@ import static goldsprite.myUdpNetty.tools.LogTools.NLogInfo;
 public class Server {
     public static Server Instance;
     public static InetSocketAddress localAddress = new InetSocketAddress("0.0.0.0", 34001);  //内
-    public static InetSocketAddress networkAddress = new InetSocketAddress("192.168.1.105", 34001);  //本机局域外
+//    public static InetSocketAddress networkAddress = new InetSocketAddress("192.168.1.105", 34001);  //本机局域外
 //    public static InetSocketAddress networkAddress = new InetSocketAddress("112.195.244.107", 34001);  //本机网络外
-//    public static InetSocketAddress networkAddress = new InetSocketAddress("162.14.68.248", 34001);  //云服外
+    public static InetSocketAddress networkAddress = new InetSocketAddress("162.14.68.248", 34001);  //云服外
     public static boolean enableHeartBeats = false;
     public static boolean strangerIntercept = false;
     public static int heartTicker = 1000 * 15 * 10;  //millis
@@ -113,6 +113,7 @@ public class Server {
 
         var clientInfo = new ClientInfoStatus();
         clientInfo.address = sender;
+        LogTools.NLogDebug("登录玩家地址: "+sender);
         clientInfo.name = pk.getUserName();
         clientInfo.loginTimeMillis = System.currentTimeMillis();
         clientInfo.afkHearts = System.currentTimeMillis() + heartTicker;

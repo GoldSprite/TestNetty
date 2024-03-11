@@ -106,11 +106,14 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
     }
 
     private void handleBroadcastRequestPacket(BroadcastRequestPacket pk) {
-        var msg = pk.getMessage();
+        var client = Server.Instance.clients.get(pk.getOwnerGuid());
+        var msg = "收到<玩家-"+pk.getOwnerGuid()+"-"+client.name+">广播: "+pk.getMessage();
+        LogTools.NLogInfo(msg);
         //广播
         Server.Instance.clients.forEach((guid, v)->{
             var bpk = new BroadcastResponsePacket(guid, IStatus.RETURN_SUCCESS, msg);
             Server.Instance.sendPacket(bpk);
+
         });
     }
 
@@ -118,6 +121,8 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
     }
 
     private void handleMessageRequestPacket(MessageRequestPacket pk) {
+        var client = Server.Instance.clients.get(pk.getOwnerGuid());
+        LogTools.NLogInfo("收到<玩家-"+pk.getOwnerGuid()+"-"+client.name+">信息: "+pk.getMessage());
         var rep = new MessageResponsePacket(pk.getOwnerGuid(), IStatus.RETURN_SUCCESS);
         Server.Instance.sendPacket(rep);
     }

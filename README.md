@@ -231,8 +231,8 @@ channel.pipeline().context(name);  //可以获取指定名字处理器
 - 条件为包含且开启则显示否则过滤该消息 ``if (!logLevels.containsKey(logLevel) || !logLevels.get(logLevel)) return;``
 - terminal指令忘了msg改成broadcast ``msg.replaceFirst("broadcast ", "");``
 
-### 2024.3.11.7
-
+### 2024.3.11.7-云服测试
+云服测试: 发现不能挂梯子玩...汗颜
 
 ### 待办
 1. 这块之后做成NLogDebug和NLogMsg区分开``收到包类型: BroadcastResponsePacket``

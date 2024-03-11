@@ -6,7 +6,7 @@ public class LogTools {
     public static HashMap<Integer, Boolean> logLevels = new HashMap<>(){{
         put(ILogLevel.ERROR, true);
         put(ILogLevel.WARNING, true);
-        put(ILogLevel.DEBUG, false);
+        put(ILogLevel.DEBUG, true);
         put(ILogLevel.INFO, true);
         put(ILogLevel.MSG, true);
     }};
@@ -41,7 +41,8 @@ public class LogTools {
     }
 
     public static void NLog(int logLevel, Object msg) {
-        if (!logLevels.containsKey(logLevel) || !logLevels.get(logLevel)) return;
+        if(logLevel != ILogLevel.FORCE)
+            if (!logLevels.containsKey(logLevel) || !logLevels.get(logLevel)) return;
         System.out.println(ILogLevel.msgMap.get(logLevel)
                 + DateTools.currentDateTime()
                 + msg.toString()
