@@ -1,6 +1,6 @@
 <component name="ArtifactManager">
   <artifact type="jar" build-on-make="true" name="TestClient">
-    <output-path>$PROJECT_DIR$/</output-path>
+    <output-path>$PROJECT_DIR$/outputs</output-path>
     <root id="archive" name="TestClient.jar">
       <element id="directory" name="META-INF">
         <element id="file-copy" path="$PROJECT_DIR$/META-INF2/MANIFEST.MF" />

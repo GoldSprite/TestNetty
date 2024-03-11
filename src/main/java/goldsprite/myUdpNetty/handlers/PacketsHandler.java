@@ -5,6 +5,7 @@ import goldsprite.myUdpNetty.codec.packets.*;
 import goldsprite.myUdpNetty.other.PacketCallback2;
 import goldsprite.myUdpNetty.codec.codecInterfaces.ICommand;
 import goldsprite.myUdpNetty.codec.codecInterfaces.Packet;
+import goldsprite.myUdpNetty.starter.Client;
 import goldsprite.myUdpNetty.starter.Server;
 import goldsprite.myUdpNetty.tools.LogTools;
 import io.netty.channel.ChannelHandlerContext;
@@ -47,14 +48,16 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
         var packet = goldsprite.myUdpNetty.codec.PacketCodeC.INSTANCE.decode(dpk.content());
 
         LogTools.NLogDebug("收到包类型: " + packet.getClass().getSimpleName());
-//        if(strangerIntercept)
-//            if(isServer){
-//                var intercept = strangerInterceptor(packet);
-//                if (intercept){
-//                    LogTools.NLog("已拦截未登录者消息.");
-//                    return;
-//                }
-//            }
+        if(Server.Instance.strangerIntercept)
+            if(isServer){
+                var intercept = strangerInterceptor(packet);
+                if (intercept){
+                    LogTools.NLogInfo("已拦截未登录者消息.");
+                    var rep = new LoginResponsePacket(packet.getOwnerGuid(), IStatus.RETURN_DEFEAT_LOGIN_NOTLOGIN);
+                    Server.Instance.sendPacket(rep);
+                    return;
+                }
+            }
 
         switch (packet.getCommand()) {
             case ICommand.LOGIN_REQUEST: {
@@ -107,8 +110,8 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 
     private void handleBroadcastRequestPacket(BroadcastRequestPacket pk) {
         var client = Server.Instance.clients.get(pk.getOwnerGuid());
-        var msg = "收到<玩家-"+pk.getOwnerGuid()+"-"+client.name+">广播: "+pk.getMessage();
-        LogTools.NLogInfo(msg);
+        var msg = "<玩家-"+pk.getOwnerGuid()+"-"+client.name+">广播: "+pk.getMessage();
+        LogTools.NLogInfo("收到"+msg);
         //广播
         Server.Instance.clients.forEach((guid, v)->{
             var bpk = new BroadcastResponsePacket(guid, IStatus.RETURN_SUCCESS, msg);
@@ -128,12 +131,21 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
     }
 
     private void handleLoginResponsePacket(LoginResponsePacket pk) {
+        Client.Instance.setOwnerGuid(pk.getOwnerGuid());
+        if(IStatus.isSuccessStatus(pk)) LogTools.NLogInfo("登陆响应: 已分配guid: "+pk.getOwnerGuid());
     }
 
     private void handleLoginRequestPacket(LoginRequestPacket pk, InetSocketAddress sender) {
-        var status = loginAuthentication(pk);
+        var status = loginAuthentication(pk, sender);
         var newGuid = pk.getOwnerGuid();
         if (IStatus.isSuccessStatus(status)) {
+            //挤掉之前的同ip号
+            var repeatClient = Server.Instance.clients.entrySet().stream().filter(p->p.getValue().address.equals(sender)).findFirst();
+            if(repeatClient.isPresent()){
+                LogTools.NLogDebug("同ip之前帐号自动被挤号.");
+                status = IStatus.RETURN_SUCCESS_LOGIN_PUSHTOP;
+                Server.Instance.clients.remove(pk.getOwnerGuid());
+            }
             newGuid = Server.Instance.endGuid++;
             Server.Instance.loginClient(pk, sender, newGuid);
         }
@@ -142,40 +154,28 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
         Server.Instance.sendPacket(rep);
     }
 
-    private int loginAuthentication(LoginRequestPacket pk) {
+    private int loginAuthentication(LoginRequestPacket pk, InetSocketAddress sender) {
         var statusId = IStatus.RETURN_SUCCESS;
-        if (Server.Instance.isOnline(pk.getOwnerGuid())) {
-            LogTools.NLogInfo(IStatus.getStatusMsg(pk, IStatus.RETURN_DEFEAT_LOGIN_REPEAT));
-            return IStatus.RETURN_DEFEAT_LOGIN_REPEAT;
-        }
+        var isOnline = Server.Instance.isOnline(pk.getOwnerGuid());
+//        var ipRepeat = Server.Instance.clients.values().stream().anyMatch(p->p.address.equals(sender));
+        if(isOnline) statusId = IStatus.RETURN_DEFEAT_LOGIN_REPEAT_SAMEGUID;
+//        else if(ipRepeat) statusId = IStatus.RETURN_DEFEAT_LOGIN_REPEAT_SAMEADDRESS;
+        LogTools.NLogInfo(IStatus.getStatusMsg(pk, statusId));
         return statusId;
     }
 
-//    //拦截非登录用户包(除正在登录)
-//    private boolean strangerInterceptor(Packet packet) {
-//        if(packet instanceof LoginRequestPacket) return false;
-//
-//        var playerGuid = packet.getOwnerGuid();
-//        return !UdpServer.Instance.isOnline(playerGuid);
-//    }
+    //拦截非登录用户包(除正在登录)
+    private boolean strangerInterceptor(Packet packet) {
+        if(packet instanceof LoginRequestPacket) return false;
+        var playerGuid = packet.getOwnerGuid();
+        return !Server.Instance.isOnline(playerGuid);
+    }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         LogTools.NLogErr("处理器异常: ");
         cause.printStackTrace();
     }
-
-//    private String isValid(LoginRequestPacket loginpk) {
-//        if (UdpServer.Instance.clients.containsKey(loginpk.getOwnerGuid())) {
-//            return "您已经登录.";
-//        }
-//
-//        return "";
-//    }
-//
-//    private boolean isValid(MoveRequestPacket movpk) {
-//        return true;
-//    }
 
     public <T extends Packet> void addCallbackListener(Class<? extends Packet> ppid, PacketCallback2<T> callback) {
         if (!callbacks.containsKey(ppid)) callbacks.put(ppid, new ArrayList<>());

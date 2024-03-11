@@ -1,1 +1,0 @@
-java -jar TestServer.jar

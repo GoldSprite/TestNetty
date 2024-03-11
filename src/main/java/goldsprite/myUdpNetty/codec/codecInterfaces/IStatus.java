@@ -14,19 +14,31 @@ public interface IStatus {
 
 //    int RETURN_SUCCESS_LOGIN = 30101;
 //    String MSG_RETURN_SUCCESS_LOGIN = "登录成功";
+    int RETURN_SUCCESS_LOGIN_PUSHTOP = 30101;
+    String MSG_RETURN_SUCCESS_LOGIN_PUSHTOP = "挤号登录成功";
     int RETURN_DEFEAT_LOGIN_REPEAT = 40101;
     String MSG_RETURN_DEFEAT_LOGIN_REPEAT = "重复登陆";
+    int RETURN_DEFEAT_LOGIN_REPEAT_SAMEGUID = 40102;
+    String MSG_RETURN_DEFEAT_LOGIN_REPEAT_SAMEGUID = "重复的Guid登陆";
+    int RETURN_DEFEAT_LOGIN_REPEAT_SAMEADDRESS = 40103;
+    String MSG_RETURN_DEFEAT_LOGIN_REPEAT_SAMEADDRESS = "重复的IP地址登陆";
+    int RETURN_DEFEAT_LOGIN_NOTLOGIN = 40111;
+    String MSG_RETURN_DEFEAT_LOGIN_NOTLOGIN = "未登录, 请先登录";
 
     public static HashMap<Integer, String> msgMap = new HashMap<Integer, String>() {{
 //        put(RETURN_SUCCESS_LOGIN, MSG_RETURN_SUCCESS_LOGIN);
+        put(RETURN_SUCCESS_LOGIN_PUSHTOP, MSG_RETURN_SUCCESS_LOGIN_PUSHTOP);
         put(RETURN_DEFEAT_LOGIN_REPEAT, MSG_RETURN_DEFEAT_LOGIN_REPEAT);
+        put(RETURN_DEFEAT_LOGIN_REPEAT_SAMEGUID, MSG_RETURN_DEFEAT_LOGIN_REPEAT_SAMEGUID);
+        put(RETURN_DEFEAT_LOGIN_REPEAT_SAMEADDRESS, MSG_RETURN_DEFEAT_LOGIN_REPEAT_SAMEADDRESS);
+        put(RETURN_DEFEAT_LOGIN_NOTLOGIN, MSG_RETURN_DEFEAT_LOGIN_NOTLOGIN);
     }};
 
     public static String getStatusMsg(Packet pk, int status) {
-        var msg = pk.getClass().getSimpleName()
+        var msg = pk.getClass().getSimpleName() +" "
                 + (isReturnStatus(status) ? "响应" : "发送")
-                + (isSuccessStatus(status) ? "成功." : "失败, reason: "
-                + (msgMap.get(status) == null ? "" : msgMap.get(status)));
+                + (isSuccessStatus(status) ? "成功" : "失败")
+                + (msgMap.get(status) == null ? "" : ", reason: "+msgMap.get(status));
         return msg;
     }
     public static String getStatusMsg(Packet pk) {

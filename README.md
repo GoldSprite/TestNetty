@@ -235,16 +235,37 @@ channel.pipeline().context(name);  //可以获取指定名字处理器
 云服测试: 发现不能挂梯子玩...汗颜
 好像又可以了, 莫名其妙, 有时可以有时不可以, 可能是梯子本身的问题
 
-### 2024.3.11.8
+### 2024.3.11.8-修复重复登录问题
 - 移动目录
-
+  修客户端离线handleBroadcastRequestPacket报空指针bug
+- 重新开启陌生者信息拦截:
+```
+    - if(Server.Instance.strangerIntercept)
+    - public static boolean strangerIntercept = true;  
+    - private boolean strangerInterceptor(Packet packet) {
+    - var rep = new LoginResponsePacket(packet.getOwnerGuid(), IStatus.RETURN_DEFEAT_LOGIN_NOTLOGIN);
+    - LogTools.NLogInfo("登陆响应: "+IStatus.getStatusMsg(pk));
+```
+- 解决重复登录包括同guid(一把登两次)与同ip地址(重新上号又登) ```目标玩家地址: /192.168.1.105:8007 [DEBUG] [00:06:53] 目标玩家地址: /192.168.1.105:8007```
+- 更新手册提示: ``LogTools.NLog(ILogLevel.FORCE, helpManual);``
+- 下次搞 ``有个客户端未登录我无法获取其ip的设计问题: 可以改为无论是否登录都对其进行分配id编码, 并设置一个boolean识别stranger还是user``
+- 测试
+- 之后做: 发现包状态码代码量太大了, 还是string来的简单到时候该回去把, 加载packet里, 状态码就很简单的4个发送接收/成功失败/有无原因: 
+  - 010表示发送成功无原因
+  - 101表示接收失败有原因
+  - 这样就比较简单了, 原因用string直接想些啥写啥舒服点
+- 再上传一下云服
 
 ### 待办
-1. 这块之后做成NLogDebug和NLogMsg区分开``收到包类型: BroadcastResponsePacket``
-2. 把每种包处理逻辑分发不同的类处理
-3. 统一所有输出日志到一个方法: 使用类似NLogV, NLogW, NLogD...
-4. 我似乎忘了我做的是一个网络通信框架, 而不是一个服务器运行器
-5. 所以我需要回到框架开发上来, 我需要开发一个基础代码结构, 它有几点是必须做到的:
+1. 之后可以尝试直接使用ip做客户端表的key
+2. 发现包状态码代码量太大了, 还是string来的简单到时候该回去把, 加载packet里, 状态码就很简单的4个发送接收/成功失败/有无原因:
+   - 010表示发送成功无原因
+   - 101表示接收失败有原因
+   - 这样就比较简单了, 原因用string直接想些啥写啥舒服点 
+3. 有个客户端未登录我无法获取其ip的设计问题: 可以改为无论是否登录都对其进行分配id编码, 并设置一个boolean识别stranger还是user
+4. 把每种包处理逻辑分发不同的类处理
+5. 我似乎忘了我做的是一个网络通信框架, 而不是一个服务器运行器
+6. 所以我需要回到框架开发上来, 我需要开发一个基础代码结构, 它有几点是必须做到的:
     1. 首先, 它很小, 不需要花费大量的时间开发, 应该能只需要很快就可以完成
     2. 其次, 它能够让我不关心网络通信的细节, 可以专注于逻辑开发
     3. 最后明确它的功能:
@@ -259,4 +280,4 @@ channel.pipeline().context(name);  //可以获取指定名字处理器
                 4. 用户名
             2. 客户端获取服务端信息:
                 1. ipport数据
-已完成 **6** 项 
+已完成 **8** 项 

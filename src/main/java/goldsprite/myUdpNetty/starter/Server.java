@@ -29,7 +29,7 @@ public class Server {
 //    public static InetSocketAddress networkAddress = new InetSocketAddress("112.195.244.107", 34001);  //本机网络外
     public static InetSocketAddress networkAddress = new InetSocketAddress("162.14.68.248", 34001);  //云服外
     public static boolean enableHeartBeats = false;
-    public static boolean strangerIntercept = false;
+    public static boolean strangerIntercept = true;
     public static int heartTicker = 1000 * 15 * 10;  //millis
     public static int heartInterval = 1000 * 1;  //millis
 
