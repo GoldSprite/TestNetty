@@ -48,7 +48,7 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
         var packet = goldsprite.myUdpNetty.codec.PacketCodeC.INSTANCE.decode(dpk.content());
 
         LogTools.NLogDebug("收到包类型: " + packet.getClass().getSimpleName());
-        if(Server.Instance.strangerIntercept)
+        if(Server.strangerIntercept)
             if(isServer){
                 var intercept = strangerInterceptor(packet);
                 if (intercept){

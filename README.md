@@ -1,8 +1,20 @@
-# TestNetty
+# TestNetty 2024.12.8.1
 
-## Unity端项目github地址: 
+# Unity端项目github地址: 
 https://github.com/GoldSprite/NetcodeLearn_HumanEatCoin  
 
+# 当前内容
+
+# 待办
+
+# 更新日志
+## 2024.12.8.1: 增加客户端与服务端启动配置
+- properties配置: 
+  - 增加了server.properties与client.properties来选择启动配置
+  - 在readCFG()进行读取
+
+
+# 旧日志
 ### 2024.3.6.0
 初始化项目： 简单登录Netty通信， 使用自定义PacketCodeC
 定义协议格式: 魔数4->版本号1->序列化算法1->指令1->数据长度4->数据N

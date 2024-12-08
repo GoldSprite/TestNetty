@@ -43,8 +43,9 @@ public class LogTools {
     public static void NLog(int logLevel, Object msg) {
         if(logLevel != ILogLevel.FORCE)
             if (!logLevels.containsKey(logLevel) || !logLevels.get(logLevel)) return;
-        System.out.println(ILogLevel.msgMap.get(logLevel)
-                + DateTools.currentDateTime()
+        System.out.println(
+                DateTools.currentDateTime()
+                + ILogLevel.msgMap.get(logLevel)
                 + msg.toString()
         );
     }

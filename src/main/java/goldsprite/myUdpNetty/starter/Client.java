@@ -18,14 +18,21 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.io.*;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
+import java.util.Properties;
 import java.util.Scanner;
 
 //import lombok.var;
 
 public class Client {
     public static Client Instance;
-    public static InetSocketAddress localAddress = new InetSocketAddress("0.0.0.0", 8007);  //本地
+    //    public static InetSocketAddress localAddress = new InetSocketAddress("0.0.0.0", -1);  //本地
+    public static InetSocketAddress localAddress;  // 随机地址
+    static{
+        localAddress = new InetSocketAddress("0.0.0.0", getRandomPort());
+    }
     public static int ServerWaitOutTime = 1000 * 3;  //millis
     public ClientInfoStatus server = new ClientInfoStatus();
     public boolean heartReply = false;
@@ -34,13 +41,89 @@ public class Client {
     private int ownerGuid = -1;
     Channel channel;
 
+    static boolean firstLaunch = false;
     public static void main(String[] args) {
 
         Instance = new Client();
 
+        readCFG();
+        if(firstLaunch) return;
+
         Instance.startClient();
     }
 
+    private static void readCFG() {
+        // 假设配置文件名为 client.properties
+        Properties properties = new Properties();
+        File dir = new File(System.getProperty("user.dir"));
+        LogTools.NLog(ILogLevel.DEBUG, "运行所在目录: " + dir.getAbsolutePath());
+        File file = new File(dir, "client.properties");
+        if (!file.exists()) {
+            try {
+                file.createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            // 如果文件不存在，则从 resources 目录复制
+            InputStream inputStream = Client.class.getClassLoader().getResourceAsStream("client.properties");
+            if (inputStream!= null) {
+                try (OutputStream outputStream = new FileOutputStream(file)) {
+                    byte[] buffer = new byte[1024];
+                    int length;
+                    while ((length = inputStream.read(buffer)) > 0) {
+                        outputStream.write(buffer, 0, length);
+                    }
+                    LogTools.NLog(ILogLevel.DEBUG, "从 resources 目录复制 client.properties 文件到运行目录");
+                    LogTools.NLog(ILogLevel.INFO, "创建初始配置完成, 请重新启动.");
+                    //if(System.readKey()) System.exit(0);
+                    // 添加按键监听
+                    new Thread(() -> {
+                        try {
+                            while (true) {
+                                if (System.in.read() == '\n') { // 检查是否按下回车键
+                                    System.out.println("Exiting server...");
+                                    System.exit(0);
+                                }
+                                Thread.sleep(100); // 避免CPU占用过高
+                            }
+                        } catch (IOException | InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }).start();
+                    firstLaunch = true;
+                    return;
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        inputStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                LogTools.NLog(ILogLevel.ERROR, "无法从 resources 目录找到 client.properties 文件");
+                return;
+            }
+        }
+        try (InputStream inputStream = new FileInputStream(file)) {
+            properties.load(inputStream);
+            LogTools.NLog(ILogLevel.DEBUG, "读取配置文件: " + properties.toString());
+            // 读取配置文件中的属性
+            String localAddress = properties.getProperty("localAddress");
+            String localPortStr = properties.getProperty("localPort");
+            int localPort = localPortStr!=null?Integer.parseInt(localPortStr):getRandomPort();
+            String networkAddress = properties.getProperty("networkAddress");
+            int networkPort = Integer.parseInt(properties.getProperty("networkPort"));
+            boolean enableHeartBeats = Boolean.parseBoolean(properties.getProperty("enableHeartBeats"));
+            // 设置服务器配置
+            Client.localAddress = new InetSocketAddress(localAddress, localPort);
+            Server.networkAddress = new InetSocketAddress(networkAddress, networkPort);
+            Server.enableHeartBeats = enableHeartBeats;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     /**
      * 点对点
@@ -66,6 +149,8 @@ public class Client {
     void startClient() {
         bind();
 
+        LogTools.NLogInfo("客户端启动成功.");
+        LogTools.NLogInfo("请先登录以访问服务器.");
         LogTools.NLogInfo(helpMsg);
         while (true) {
             Scanner scan = new Scanner(System.in);
@@ -122,14 +207,14 @@ public class Client {
             case "msg": {
                 var msg = String.join(" ", cmd);
                 msg = msg.replaceFirst("msg ", "");
-                LogTools.NLogMsg("你发了: "+msg);
+                LogTools.NLogMsg("你发了: " + msg);
                 cmd_SendMsg(msg);
                 break;
             }
             case "broadcast": {
                 var msg = String.join(" ", cmd);
                 msg = msg.replaceFirst("broadcast ", "");
-                LogTools.NLogMsg("你广播了: "+msg);
+                LogTools.NLogMsg("你广播了: " + msg);
                 cmd_SendBroadcast(msg);
                 break;
             }
@@ -147,7 +232,7 @@ public class Client {
                 var key = Integer.parseInt(cmd[1]);
                 var onoff = "1".equals(cmd[2]);
                 LogTools.logLevels.replace(key, onoff);
-                LogTools.NLog(ILogLevel.FORCE, "logLevel-"+ILogLevel.getLogMsg(key)+(onoff?"开启":"关闭")+".");
+                LogTools.NLog(ILogLevel.FORCE, "logLevel-" + ILogLevel.getLogMsg(key) + (onoff ? "开启" : "关闭") + ".");
                 break;
             }
             default:
@@ -158,7 +243,7 @@ public class Client {
     private void cmd_Login(String userName, String password) {
         var pk = new LoginRequestPacket(getOwnerGuid(), userName, password);
         sendPacket(pk, LoginResponsePacket.class, (rep) -> {
-            if (IStatus.isSuccessStatus(rep)){
+            if (IStatus.isSuccessStatus(rep)) {
                 LogTools.NLogMsg("登录成功.");
             }
         });
@@ -167,7 +252,7 @@ public class Client {
     private void cmd_SendMsg(String msg) {
         var pk = new MessageRequestPacket(getOwnerGuid(), msg);
         sendPacket(pk, MessageResponsePacket.class, (rep) -> {
-            if(IStatus.isSuccessStatus(rep))
+            if (IStatus.isSuccessStatus(rep))
                 LogTools.NLogMsg("信息发送成功.");
         });
     }
@@ -175,7 +260,7 @@ public class Client {
     private void cmd_SendBroadcast(String msg) {
         var pk = new BroadcastRequestPacket(getOwnerGuid(), msg);
         sendPacket(pk, BroadcastResponsePacket.class, (rep) -> {
-            if(IStatus.isSuccessStatus(rep)){
+            if (IStatus.isSuccessStatus(rep)) {
                 LogTools.NLogMsg("广播发送成功.");
             }
         });
@@ -190,6 +275,22 @@ public class Client {
         var handler = (PacketsHandler) channel.pipeline().context("2").handler();
         handler.addCallbackListener(ppid, callback);
         sendPacket(pk);
+    }
+
+    private static int getRandomPort() {
+        int randomPort;
+        do {
+            randomPort = (int) (Math.random() * 10000 + 30000);
+        } while (isPortInUse(randomPort));
+        return randomPort;
+    }
+
+    private static boolean isPortInUse(int port) {
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            return false;
+        } catch (IOException e) {
+            return true;
+        }
     }
 
 }

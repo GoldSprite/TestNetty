@@ -11,11 +11,11 @@ public interface ILogLevel {
     public static final int MSG = 5;
 
     public static HashMap<Integer, String> msgMap = new HashMap<Integer, String>() {{
-        put(ILogLevel.MSG, "[MSG] ");
-        put(ILogLevel.INFO, "[INFO] ");
+        put(ILogLevel.MSG, "[ MSG ] ");
+        put(ILogLevel.INFO, "[INFO ] ");
         put(ILogLevel.DEBUG, "[DEBUG] ");
-        put(ILogLevel.WARNING, "[WARN] ");
-        put(ILogLevel.ERROR, "[ERR] ");
+        put(ILogLevel.WARNING, "[WARN ] ");
+        put(ILogLevel.ERROR, "[ ERR ] ");
         put(ILogLevel.FORCE, "[FORCE] ");
     }};
 
