@@ -22,6 +22,7 @@ import java.util.List;
 public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> {
     private boolean isServer;
     private HashMap<Class<? extends Packet>, List<PacketCallback2>> callbacks = new HashMap<>();
+    private HashMap<Class<? extends Packet>, List<PacketCallback2>> subscribers = new HashMap<>();
 
     public PacketsHandler() {
     }
@@ -46,6 +47,10 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 //        LogTools.NLog(ctx.name() + ": CustomPacketHandler.channelRead");
         var sender = dpk.sender();
         var packet = goldsprite.myUdpNetty.codec.PacketCodeC.INSTANCE.decode(dpk.content());
+        if (packet == null) {
+            LogTools.NLogWarn("收到无法解析的数据包，已忽略.");
+            return;
+        }
 
         LogTools.NLogDebug("收到包类型: " + packet.getClass().getSimpleName());
         if(Server.strangerIntercept)
@@ -101,6 +106,8 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
 
         if (IStatus.isReturnStatus(packet))
             callback(packet);
+
+        callbackSubscribers(packet);
 
     }
 
@@ -191,6 +198,19 @@ public class PacketsHandler extends SimpleChannelInboundHandler<DatagramPacket> 
         if (pkCallbacks != null && pkCallbacks.size() > 0) {
             pkCallbacks.forEach((p) -> p.callback(pk));
             pkCallbacks.clear();
+        }
+    }
+
+    public <T extends Packet> void addSubscriber(Class<T> ppid, PacketCallback2<T> callback) {
+        if (!subscribers.containsKey(ppid)) subscribers.put(ppid, new ArrayList<>());
+        var pkSubscribers = subscribers.get(ppid);
+        pkSubscribers.add((pk) -> callback.callback((T) pk));
+    }
+
+    private <T extends Packet> void callbackSubscribers(T pk) {
+        var pkCallbacks = subscribers.get(pk.getClass());
+        if (pkCallbacks != null && pkCallbacks.size() > 0) {
+            pkCallbacks.forEach((p) -> p.callback(pk));
         }
     }
 }

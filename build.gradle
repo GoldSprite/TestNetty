@@ -1,0 +1,72 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = "${projectPackage}"
+version = "${projectVersion}"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(project.jdkVersion as Integer)
+    }
+    withSourcesJar()
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    api "io.netty:netty-all:$nettyVersion"
+
+    compileOnly "org.projectlombok:lombok:$lombokVersion"
+    annotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+    testCompileOnly "org.projectlombok:lombok:$lombokVersion"
+    testAnnotationProcessor "org.projectlombok:lombok:$lombokVersion"
+
+    api "com.google.code.gson:gson:$gsonVersion"
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+def projectPackage = project.projectPackage
+tasks.register('generateBuildConfig') {
+    def packagePath = projectPackage.replace('.', '/')
+    def versionFile = file("$projectDir/src/main/java/${packagePath}/BuildConfig.java")
+    versionFile.parentFile.mkdirs()
+    versionFile.text = """package $projectPackage;
+public class BuildConfig {
+    public static final String PROJECT_NAME = \"${rootProject.name}\";
+    public static final String DEV_VERSION = \"${project.projectVersion}\";
+    public static final String JDK_VERSION = \"${project.jdkVersion}\";
+}"""
+    println "Updated BuildConfig version to ${projectVersion}"
+}
+compileJava.dependsOn(generateBuildConfig)
+
+tasks.register('updateReadmeVersion') {
+    def readmeFile = file("$rootProject.projectDir/README.md")
+    if (!readmeFile.exists() || !project.hasProperty("projectVersion")) return
+
+    def content = readmeFile.getText('UTF-8')
+    def updatedContent = content.replaceFirst(/^(# ${rootProject.name}.*V)(.*)/) { all, prefix, oldVersion ->
+        "${prefix}${project.projectVersion}"
+    }
+    readmeFile.write(updatedContent, 'UTF-8')
+    println "Updated README.md version to ${projectVersion}"
+}
+compileJava.dependsOn(updateReadmeVersion)
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = 'TestNetty'
+        }
+    }
+}

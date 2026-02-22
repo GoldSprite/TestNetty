@@ -19,6 +19,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 //import lombok.var;
@@ -52,6 +53,8 @@ public class Server {
 
     public int endGuid = 0;
     private Channel channel;
+    private final AtomicBoolean running = new AtomicBoolean(false);
+    private Thread serverThread;
 
 
     public class LaunchCFG {
@@ -145,6 +148,7 @@ public class Server {
 
 
     void run() {
+        running.set(true);
         EventLoopGroup group = new NioEventLoopGroup();
         try {
             Bootstrap b = new Bootstrap()
@@ -172,8 +176,40 @@ public class Server {
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
+            running.set(false);
             group.shutdownGracefully();
         }
+    }
+
+    public synchronized void startAsync(InetSocketAddress bindAddress, InetSocketAddress exposedAddress, boolean enableHeartBeat) {
+        if (running.get()) return;
+        localAddress = bindAddress;
+        networkAddress = exposedAddress;
+        enableHeartBeats = enableHeartBeat;
+        Instance = this;
+        serverThread = new Thread(this::run, "TestNetty-Server");
+        serverThread.setDaemon(true);
+        serverThread.start();
+    }
+
+    public synchronized void stop() {
+        try {
+            if (channel != null) {
+                channel.close().syncUninterruptibly();
+            }
+        } catch (Exception ignored) {
+        } finally {
+            running.set(false);
+        }
+    }
+
+    public boolean isRunning() {
+        return running.get();
+    }
+
+    public PacketsHandler getPacketsHandler() {
+        if (channel == null) return null;
+        return (PacketsHandler) channel.pipeline().context("2").handler();
     }
 
     private void startHeartBeatThread() {

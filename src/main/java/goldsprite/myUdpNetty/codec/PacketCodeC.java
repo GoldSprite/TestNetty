@@ -34,6 +34,10 @@ public class PacketCodeC {
         packetTypeMap.put(BROADCAST_RESPONSE, BroadcastResponsePacket.class);
     }
 
+    public synchronized void registerPacketType(byte command, Class<? extends Packet> packetType) {
+        packetTypeMap.put(command, packetType);
+    }
+
     public ByteBuf encode(ByteBufAllocator bufAllocator, Packet packet) {
         try {
             // 1. 创建 ByteBuf 对象

@@ -23,6 +23,7 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.util.Properties;
 import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 //import lombok.var;
 
@@ -40,6 +41,7 @@ public class Client {
     @Setter
     private int ownerGuid = -1;
     Channel channel;
+    private final AtomicBoolean running = new AtomicBoolean(false);
 
     static boolean firstLaunch = false;
     public static void main(String[] args) {
@@ -147,7 +149,7 @@ public class Client {
      */
 
     void startClient() {
-        bind();
+        start(localAddress, Server.networkAddress, Server.enableHeartBeats);
 
         LogTools.NLogInfo("客户端启动成功.");
         LogTools.NLogInfo("请先登录以访问服务器.");
@@ -180,10 +182,38 @@ public class Client {
                         }
                     });
             channel = (NioDatagramChannel) b.bind(localAddress).sync().channel();
+            running.set(true);
 
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    public synchronized void start(InetSocketAddress bindAddress, InetSocketAddress serverAddress, boolean enableHeartBeat) {
+        if (running.get()) return;
+        Instance = this;
+        localAddress = bindAddress;
+        Server.networkAddress = serverAddress;
+        Server.enableHeartBeats = enableHeartBeat;
+        bind();
+    }
+
+    public synchronized void stop() {
+        try {
+            if (channel != null) channel.close().syncUninterruptibly();
+        } catch (Exception ignored) {
+        } finally {
+            running.set(false);
+        }
+    }
+
+    public boolean isRunning() {
+        return running.get();
+    }
+
+    public PacketsHandler getPacketsHandler() {
+        if (channel == null) return null;
+        return (PacketsHandler) channel.pipeline().context("2").handler();
     }
 
     String helpMsg = "please input [/help] to show the commands menu.";
