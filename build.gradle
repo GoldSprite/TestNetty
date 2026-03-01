@@ -1,3 +1,27 @@
+buildscript {
+    repositories {
+        google()
+        jcenter()
+        mavenLocal()
+        mavenCentral()
+        gradlePluginPortal()
+        maven { url 'https://maven.aliyun.com/repository/public/' }
+        maven { url 'https://maven.aliyun.com/repository/google' }
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+        maven { url 'https://maven.aliyun.com/nexus/content/groups/public' }
+        maven { url 'https://s01.oss.sonatype.org' }
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+        maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+        maven { url "https://jitpack.io" }
+        maven { url 'https://repo1.maven.org/maven2/' }
+        maven { url 'https://dl.bintray.com/ppartisan/maven/' }
+        maven { url "https://clojars.org/repo/" }
+    }
+    dependencies {
+    }
+}
+
 plugins {
     id 'java-library'
     id 'maven-publish'
@@ -14,8 +38,36 @@ java {
 }
 
 repositories {
+    google()
+    jcenter()
     mavenLocal()
     mavenCentral()
+    gradlePluginPortal()
+    maven { url 'https://maven.aliyun.com/repository/public/' }
+    maven { url 'https://maven.aliyun.com/repository/google' }
+    maven { url 'https://maven.aliyun.com/repository/jcenter' }
+    maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+    maven { url 'https://maven.aliyun.com/nexus/content/groups/public' }
+    maven { url 'https://s01.oss.sonatype.org' }
+    maven { url 'https://oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
+    maven { url "https://jitpack.io" } // 【关键】添加 JitPack
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" } // 添加快照仓库
+    maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+    maven { url 'https://repo1.maven.org/maven2/' }
+    maven { url 'https://dl.bintray.com/ppartisan/maven/' }
+    maven { url "https://clojars.org/repo/" }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            groupId = "${jitpackGroup}"
+            artifactId = rootProject.name // 'TestNetty'
+            version = "${projectVersion}"
+        }
+    }
 }
 
 dependencies {
@@ -35,6 +87,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 def projectPackage = project.projectPackage
+
 tasks.register('generateBuildConfig') {
     def packagePath = projectPackage.replace('.', '/')
     def versionFile = file("$projectDir/src/main/java/${packagePath}/BuildConfig.java")
@@ -61,11 +114,3 @@ tasks.register('updateReadmeVersion') {
     println "Updated README.md version to ${projectVersion}"
 }
 compileJava.dependsOn(updateReadmeVersion)
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
-    }
-}
