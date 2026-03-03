@@ -7,6 +7,7 @@ target/
 .idea/
 diff.txt
 build/
+bin/
 
 ### STS ###
 .apt_generated
